@@ -9,15 +9,18 @@
 import Foundation
 
 let plainText =
-  "// A function that takes two parameters" + "\n" +
-    "func(param1, param2) {"                  + "\n" +
-    "  var a = 3.141592"                      + "\n" +
-    "  var b = .718121828"                    + "\n" +
-    "  /* `a` and `b` could"                  + "\n" +
-    "  be constants */"                       + "\n" +
-    "  extern(a + b)"                         + "\n"
+"// A function that takes two parameters" + "\n" +
+"func(param1, param2) {"                  + "\n" +
+"  var a = 3.141592"                      + "\n" +
+"  var b = .718121828"                    + "\n" +
+"  /* `a` and `b` could"                  + "\n" +
+"  be constants */"                       + "\n" +
+"  extern(a + b)"                         + "\n" +
+"}"                                       + "\n"
 
 Lexer.plainText = plainText
+print(plainText)
+print()
 
 var tokenBuffer: Lexer.Token
 while true {

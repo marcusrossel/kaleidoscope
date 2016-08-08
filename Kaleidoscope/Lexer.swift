@@ -14,10 +14,51 @@ extension Character {
   }
 }
 
-public class Lexer {
-  private static var EndOfPlainText: Character = "\0"
+class Lexer {
+  typealias Tokenizer = (buffer: inout Character) -> Token?
+  static var EndOfPlainText: Character = "\0"
 
-  public enum Token {
+  static var plainText = ""
+
+  static var tokenizers: [Tokenizer] = [
+    Lexer.lexSkippables,
+    Lexer.lexIdentifiersAndKeywords,
+    Lexer.lexNumbers,
+  ]
+  static var afterTokenization: (buffer: Character) -> () = { buffer in
+    plainText.insert(buffer, at: plainText.startIndex)
+  }
+
+  /// Returns the `EndOfPlainText` character if `plainText` is fully
+  /// consumed.
+  static func consumeCharacter() -> Character {
+    guard !plainText.isEmpty else { return EndOfPlainText }
+    return plainText.remove(at: plainText.startIndex)
+  }
+
+  /// Allows checking the next character without consuming it.
+  static func peekCharacter() -> Character {
+    guard !plainText.isEmpty else { return EndOfPlainText }
+    return plainText[plainText.startIndex]
+  }
+
+  /// - Important: Returns `Token.other("\0")` when `plainText` is fully lexed.
+  static func nextToken() -> Token {
+    defer { afterTokenization(buffer: buffer) }
+
+    var buffer: Character = consumeCharacter()
+
+    for tokenizer in tokenizers {
+      if let token = tokenizer(buffer: &buffer) { return token }
+    }
+
+    defer { buffer = consumeCharacter() }
+    return Token.other(buffer)
+  }
+}
+
+extension Lexer {
+  enum Token {
     // Keywords.
     case variable
     case function
@@ -29,47 +70,11 @@ public class Lexer {
     // Tokens determined by the parser.
     case other(Character)
   }
+}
 
-  public static var plainText = "" { didSet { consumingPlainText = plainText } }
-  private static var consumingPlainText = ""
-
-  /// Returns the `EndOfPlainText` character if `consumingPlainText` is fully
-  /// consumed.
-  private static func consumeCharacter() -> Character {
-    guard !consumingPlainText.isEmpty else { return EndOfPlainText }
-    return consumingPlainText.remove(at: consumingPlainText.startIndex)
-  }
-
-  /// Allows checking the next character without consuming it.
-  private static func peekCharacter() -> Character {
-    guard !consumingPlainText.isEmpty else { return EndOfPlainText }
-    return consumingPlainText[consumingPlainText.startIndex]
-  }
-
-  /// - Important: Returns `Token.other("\0")` when `plainText` is fully lexed.
-  public static func nextToken() -> Token {
-    defer {
-      consumingPlainText.insert(buffer, at: consumingPlainText.startIndex)
-    }
-
-    var buffer: Character = consumeCharacter()
-
-    lexSkippables(buffer: &buffer)
-
-    if buffer.belongs(to: .letters) {
-      return lexIdentifiersAndKeywords(buffer: &buffer)
-    }
-
-    // Identifies numbers.
-    if buffer.belongs(to: .decimalDigits) || buffer == "." {
-      return lexNumbers(buffer: &buffer)
-    }
-
-    defer { buffer = consumeCharacter() }
-    return Token.other(buffer)
-  }
-
-  private static func lexSkippables(buffer: inout Character) {
+extension Lexer {
+  @discardableResult
+  static func lexSkippables(buffer: inout Character) -> Token? {
     var matchedSkippable: Bool
 
     repeat {
@@ -128,9 +133,12 @@ public class Lexer {
         }
       }
     } while matchedSkippable
+
+    return nil
   }
 
-  private static func lexIdentifiersAndKeywords(buffer: inout Character) -> Token {
+  static func lexIdentifiersAndKeywords(buffer: inout Character) -> Token? {
+    guard buffer.belongs(to: .letters) else { return nil }
     var identifierBuffer = ""
 
     repeat {
@@ -148,7 +156,8 @@ public class Lexer {
     }
   }
 
-  private static func lexNumbers(buffer: inout Character) -> Token {
+  static func lexNumbers(buffer: inout Character) -> Token? {
+    guard buffer.belongs(to: .decimalDigits) || buffer == "." else { return nil }
     var numberBuffer = ""
 
     repeat {
