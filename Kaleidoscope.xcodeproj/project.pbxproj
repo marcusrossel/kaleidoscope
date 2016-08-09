@@ -10,6 +10,7 @@
 		DD204D3C1D591F8000CB7E17 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D3B1D591F8000CB7E17 /* main.swift */; };
 		DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D421D591FDE00CB7E17 /* Lexer.swift */; };
 		DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D431D591FDE00CB7E17 /* Parser.swift */; };
+		DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D461D5A399100CB7E17 /* AST Nodes.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,6 +30,8 @@
 		DD204D3B1D591F8000CB7E17 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		DD204D421D591FDE00CB7E17 /* Lexer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lexer.swift; sourceTree = "<group>"; };
 		DD204D431D591FDE00CB7E17 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
+		DD204D461D5A399100CB7E17 /* AST Nodes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AST Nodes.swift"; sourceTree = "<group>"; };
+		DDD7504F1D5A4C200000AB98 /* Plans */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Plans; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,9 +64,11 @@
 		DD204D3A1D591F8000CB7E17 /* Kaleidoscope */ = {
 			isa = PBXGroup;
 			children = (
-				DD204D421D591FDE00CB7E17 /* Lexer.swift */,
-				DD204D431D591FDE00CB7E17 /* Parser.swift */,
 				DD204D3B1D591F8000CB7E17 /* main.swift */,
+				DD204D421D591FDE00CB7E17 /* Lexer.swift */,
+				DD204D461D5A399100CB7E17 /* AST Nodes.swift */,
+				DD204D431D591FDE00CB7E17 /* Parser.swift */,
+				DDD7504F1D5A4C200000AB98 /* Plans */,
 			);
 			path = Kaleidoscope;
 			sourceTree = "<group>";
@@ -130,6 +135,7 @@
 			files = (
 				DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */,
 				DD204D3C1D591F8000CB7E17 /* main.swift in Sources */,
+				DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */,
 				DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -254,6 +260,7 @@
 				DD204D411D591F8000CB7E17 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
