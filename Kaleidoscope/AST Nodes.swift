@@ -6,8 +6,6 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-import Foundation
-
 protocol ExpressionNode { }
 
 struct IntegerExpressionNode: ExpressionNode {

@@ -8,17 +8,12 @@
 
 import Foundation
 
-extension Character {
-  func belongs(to characterSet: CharacterSet) -> Bool {
-    return String(self).rangeOfCharacter(from: characterSet) != nil
-  }
-}
-
 class Lexer {
   typealias Tokenizer = (buffer: inout Character) -> Token?
-  static var EndOfPlainText: Character = "\0"
+  static var endOfPlainText: Character = "\0"
 
   static var plainText = ""
+  static var position = 0
 
   static var tokenizers: [Tokenizer] = [
     Lexer.lexSkippable,
@@ -29,20 +24,22 @@ class Lexer {
     plainText.insert(buffer, at: plainText.startIndex)
   }
 
-  /// Returns the `EndOfPlainText` character if `plainText` is fully
+  /// Returns the `endOfPlainText` character if `plainText` is fully
   /// consumed.
   static func consumeCharacter() -> Character {
-    guard !plainText.isEmpty else { return EndOfPlainText }
-    return plainText.remove(at: plainText.startIndex)
+    guard position < plainText.characters.count else { return endOfPlainText }
+    defer { position += 1 }
+    return plainText[offset: position]
   }
 
   /// Allows checking the next character without consuming it.
   static func peekCharacter() -> Character {
-    guard !plainText.isEmpty else { return EndOfPlainText }
-    return plainText[plainText.startIndex]
+    guard position < plainText.characters.count else { return endOfPlainText }
+    return plainText[offset: position]
   }
 
-  /// - Important: Returns `Token.other("\0")` when `plainText` is fully lexed.
+  /// - Important: Returns `Token.other(endOfPlainText)` when `plainText` is
+  /// fully lexed.
   static func nextToken() -> Token {
     defer { afterTokenization(buffer: buffer) }
 
@@ -84,7 +81,7 @@ extension Lexer {
 
           while !peekCharacter().belongs(to: .newlines) {
             buffer = consumeCharacter()
-            if buffer == EndOfPlainText { break }
+            if buffer == endOfPlainText { break }
           }
         }
 
@@ -95,14 +92,14 @@ extension Lexer {
           // Could be omitted.
           buffer = consumeCharacter()
 
-          // By adding a padding to the front of `commentBuffer' and removing the
-          // first character on each iteration, the `contains` method stays at
-          // O(2) instead of O(n).
+          // By adding a padding to the front of `commentBuffer' and removing
+          // the first character on each iteration, the `contains` method stays
+          // at O(2) instead of O(n).
           var commentBuffer = " \(consumeCharacter())"
 
           repeat {
             buffer = consumeCharacter()
-            if buffer == EndOfPlainText {
+            if buffer == endOfPlainText {
               fatalError("Multi-line comment was not closed.")
             }
 
@@ -144,28 +141,13 @@ extension Lexer {
       buffer = consumeCharacter()
     } while buffer.belongs(to: .decimalDigits) || buffer == "_"
 
-    guard let integer = Int(numberBuffer) else {
-      fatalError("Lexer Error: Was not able to convert `String` \"\(numberBuffer)\" to `Int`.")
+    let curatedBuffer = numberBuffer.replacingOccurrences(of: "_", with: "")
+    guard let integer = Int(curatedBuffer) else {
+      fatalError("Lexer Error: Was not able to convert `String` " +
+                  numberBuffer + " to `Int`.")
     }
 
     return .integerLiteral(integer)
   }
-
-  /*static func lexNumbers(buffer: inout Character) -> Token? {
-    guard buffer.belongs(to: .decimalDigits) || buffer == "." else { return nil }
-    var numberBuffer = ""
-
-    repeat {
-      numberBuffer.append(buffer)
-      buffer = consumeCharacter()
-    } while buffer.belongs(to: .decimalDigits) ||
-      (buffer == "." && !numberBuffer.contains("."))
-
-    guard let number = Double(numberBuffer) else {
-      fatalError("Was not able to convert `String` \"\(numberBuffer)\" to `Double`.")
-    }
-
-    return Token.number(number)
-  }*/
 }
 

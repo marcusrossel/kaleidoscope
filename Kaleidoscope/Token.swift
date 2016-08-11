@@ -6,8 +6,6 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-import Foundation
-
 struct Keyword {
   static let variable = "var"
   static let function = "func"
@@ -30,6 +28,10 @@ enum Token {
   case other(Character)
 
   static func forIdentifier(_ identifier: String) -> Token {
-    return Keyword.allKeywords.contains(identifier) ? .keyword(identifier) : .identifier(identifier)
+    if Keyword.allKeywords.contains(identifier) {
+      return .keyword(identifier)
+    } else {
+      return .identifier(identifier)
+    }
   }
 }

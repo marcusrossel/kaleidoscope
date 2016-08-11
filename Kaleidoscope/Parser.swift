@@ -6,8 +6,6 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-import Foundation
-
 class Parser {
   private static func precedence(for token: Token) -> Int? {
     guard case let Token.other(`operator`) = token else { return nil }

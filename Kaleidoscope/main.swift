@@ -6,13 +6,11 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-import Foundation
-
 let plainText =
 "// A function that takes two parameters" + "\n" +
 "func(param1, param2) {"                  + "\n" +
-"  var a = 3.141592"                      + "\n" +
-"  var b = .718121828"                    + "\n" +
+"  var a = 3_141_592"                     + "\n" +
+"  var b = 7__1__8__1__2__1__8__2__8_"    + "\n" +
 "  /* `a` and `b` could"                  + "\n" +
 "  be constants */"                       + "\n" +
 "  extern(a + b)"                         + "\n" +
