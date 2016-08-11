@@ -1,3 +1,0 @@
-* Formalize grammar in BNF
-* Develop a data structure that can consume BNFesque notation
-* Expand `Lexer` to be able to use said data structure

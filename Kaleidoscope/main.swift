@@ -22,9 +22,9 @@ Lexer.plainText = plainText
 print(plainText)
 print()
 
-var tokenBuffer: Lexer.Token
+var tokenBuffer: Token
 while true {
   tokenBuffer = Lexer.nextToken()
-  if case Lexer.Token.other(let character) = tokenBuffer where character == "\0" { break }
+  if case Token.other(let character) = tokenBuffer where character == "\0" { break }
   print(tokenBuffer)
 }

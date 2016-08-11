@@ -10,8 +10,8 @@ import Foundation
 
 protocol ExpressionNode { }
 
-struct NumberExpressionNode: ExpressionNode {
-  let value: Double
+struct IntegerExpressionNode: ExpressionNode {
+  let value: Int
 }
 
 struct VariableExpressionNode: ExpressionNode {

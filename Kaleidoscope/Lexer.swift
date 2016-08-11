@@ -21,9 +21,9 @@ class Lexer {
   static var plainText = ""
 
   static var tokenizers: [Tokenizer] = [
-    Lexer.lexSkippables,
-    Lexer.lexIdentifiersAndKeywords,
-    Lexer.lexNumbers,
+    Lexer.lexSkippable,
+    Lexer.lexIdentifier,
+    Lexer.lexIntegerLiteral,
   ]
   static var afterTokenization: (buffer: Character) -> () = { buffer in
     plainText.insert(buffer, at: plainText.startIndex)
@@ -58,23 +58,8 @@ class Lexer {
 }
 
 extension Lexer {
-  enum Token {
-    // Keywords.
-    case variable
-    case function
-    case external
-
-    case identifier(String)
-    case number(Double)
-
-    // Tokens determined by the parser.
-    case other(Character)
-  }
-}
-
-extension Lexer {
   @discardableResult
-  static func lexSkippables(buffer: inout Character) -> Token? {
+  static func lexSkippable(buffer: inout Character) -> Token? {
     var matchedSkippable: Bool
 
     repeat {
@@ -137,7 +122,7 @@ extension Lexer {
     return nil
   }
 
-  static func lexIdentifiersAndKeywords(buffer: inout Character) -> Token? {
+  static func lexIdentifier(buffer: inout Character) -> Token? {
     guard buffer.belongs(to: .letters) else { return nil }
     var identifierBuffer = ""
 
@@ -146,17 +131,27 @@ extension Lexer {
       buffer = consumeCharacter()
     } while buffer.belongs(to: .alphanumerics)
 
-    // Returns a keyword token or an identifier token with the associated
-    // string.
-    switch identifierBuffer {
-    case "var": return Token.variable
-    case "func": return Token.function
-    case "extern": return Token.external
-    default: return Token.identifier(identifierBuffer)
-    }
+    // Returns an `.identifier` or `.keyword` dependent on `identifierBuffer`.
+    return Token.forIdentifier(identifierBuffer)
   }
 
-  static func lexNumbers(buffer: inout Character) -> Token? {
+  static func lexIntegerLiteral(buffer: inout Character) -> Token? {
+    guard buffer.belongs(to: .decimalDigits) else { return nil }
+    var numberBuffer = ""
+
+    repeat {
+      numberBuffer.append(buffer)
+      buffer = consumeCharacter()
+    } while buffer.belongs(to: .decimalDigits) || buffer == "_"
+
+    guard let integer = Int(numberBuffer) else {
+      fatalError("Lexer Error: Was not able to convert `String` \"\(numberBuffer)\" to `Int`.")
+    }
+
+    return .integerLiteral(integer)
+  }
+
+  /*static func lexNumbers(buffer: inout Character) -> Token? {
     guard buffer.belongs(to: .decimalDigits) || buffer == "." else { return nil }
     var numberBuffer = ""
 
@@ -171,6 +166,6 @@ extension Lexer {
     }
 
     return Token.number(number)
-  }
+  }*/
 }
 

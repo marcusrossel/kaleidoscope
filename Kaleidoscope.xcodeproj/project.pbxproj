@@ -11,6 +11,7 @@
 		DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D421D591FDE00CB7E17 /* Lexer.swift */; };
 		DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D431D591FDE00CB7E17 /* Parser.swift */; };
 		DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D461D5A399100CB7E17 /* AST Nodes.swift */; };
+		DDD750681D5C97480000AB98 /* Token.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD750671D5C97480000AB98 /* Token.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,7 +32,7 @@
 		DD204D421D591FDE00CB7E17 /* Lexer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lexer.swift; sourceTree = "<group>"; };
 		DD204D431D591FDE00CB7E17 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
 		DD204D461D5A399100CB7E17 /* AST Nodes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AST Nodes.swift"; sourceTree = "<group>"; };
-		DDD7504F1D5A4C200000AB98 /* Plans */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Plans; sourceTree = "<group>"; };
+		DDD750671D5C97480000AB98 /* Token.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Token.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,10 +66,10 @@
 			isa = PBXGroup;
 			children = (
 				DD204D3B1D591F8000CB7E17 /* main.swift */,
+				DDD750671D5C97480000AB98 /* Token.swift */,
 				DD204D421D591FDE00CB7E17 /* Lexer.swift */,
 				DD204D461D5A399100CB7E17 /* AST Nodes.swift */,
 				DD204D431D591FDE00CB7E17 /* Parser.swift */,
-				DDD7504F1D5A4C200000AB98 /* Plans */,
 			);
 			path = Kaleidoscope;
 			sourceTree = "<group>";
@@ -134,6 +135,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */,
+				DDD750681D5C97480000AB98 /* Token.swift in Sources */,
 				DD204D3C1D591F8000CB7E17 /* main.swift in Sources */,
 				DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */,
 				DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */,
