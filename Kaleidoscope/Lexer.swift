@@ -8,68 +8,55 @@
 
 import Foundation
 
-extension Character {
-  func belongs(to characterSet: CharacterSet) -> Bool {
-    return String(self).rangeOfCharacter(from: characterSet) != nil
-  }
-}
+class Lexer {
+  typealias Tokenizer = (buffer: inout Character) -> Token?
+  static var endOfPlainText: Character = "\0"
 
-public class Lexer {
-  private static var EndOfPlainText: Character = "\0"
+  static var plainText = ""
+  static var position = 0
 
-  public enum Token {
-    // Keywords.
-    case variable
-    case function
-    case external
-
-    case identifier(String)
-    case number(Double)
-
-    // Tokens determined by the parser.
-    case other(Character)
+  static var tokenizers: [Tokenizer] = [
+    Lexer.lexSkippable,
+    Lexer.lexIdentifier,
+    Lexer.lexIntegerLiteral,
+  ]
+  static var afterTokenization: (buffer: Character) -> () = { buffer in
+    plainText.insert(buffer, at: plainText.startIndex)
   }
 
-  public static var plainText = "" { didSet { consumingPlainText = plainText } }
-  private static var consumingPlainText = ""
-
-  /// Returns the `EndOfPlainText` character if `consumingPlainText` is fully
+  /// Returns the `endOfPlainText` character if `plainText` is fully
   /// consumed.
-  private static func consumeCharacter() -> Character {
-    guard !consumingPlainText.isEmpty else { return EndOfPlainText }
-    return consumingPlainText.remove(at: consumingPlainText.startIndex)
+  static func consumeCharacter() -> Character {
+    guard position < plainText.characters.count else { return endOfPlainText }
+    defer { position += 1 }
+    return plainText[offset: position]
   }
 
   /// Allows checking the next character without consuming it.
-  private static func peekCharacter() -> Character {
-    guard !consumingPlainText.isEmpty else { return EndOfPlainText }
-    return consumingPlainText[consumingPlainText.startIndex]
+  static func peekCharacter() -> Character {
+    guard position < plainText.characters.count else { return endOfPlainText }
+    return plainText[offset: position]
   }
 
-  /// - Important: Returns `Token.other("\0")` when `plainText` is fully lexed.
-  public static func nextToken() -> Token {
-    defer {
-      consumingPlainText.insert(buffer, at: consumingPlainText.startIndex)
-    }
+  /// - Important: Returns `Token.other(endOfPlainText)` when `plainText` is
+  /// fully lexed.
+  static func nextToken() -> Token {
+    defer { afterTokenization(buffer: buffer) }
 
     var buffer: Character = consumeCharacter()
 
-    lexSkippables(buffer: &buffer)
-
-    if buffer.belongs(to: .letters) {
-      return lexIdentifiersAndKeywords(buffer: &buffer)
-    }
-
-    // Identifies numbers.
-    if buffer.belongs(to: .decimalDigits) || buffer == "." {
-      return lexNumbers(buffer: &buffer)
+    for tokenizer in tokenizers {
+      if let token = tokenizer(buffer: &buffer) { return token }
     }
 
     defer { buffer = consumeCharacter() }
     return Token.other(buffer)
   }
+}
 
-  private static func lexSkippables(buffer: inout Character) {
+extension Lexer {
+  @discardableResult
+  static func lexSkippable(buffer: inout Character) -> Token? {
     var matchedSkippable: Bool
 
     repeat {
@@ -94,7 +81,7 @@ public class Lexer {
 
           while !peekCharacter().belongs(to: .newlines) {
             buffer = consumeCharacter()
-            if buffer == EndOfPlainText { break }
+            if buffer == endOfPlainText { break }
           }
         }
 
@@ -105,14 +92,14 @@ public class Lexer {
           // Could be omitted.
           buffer = consumeCharacter()
 
-          // By adding a padding to the front of `commentBuffer' and removing the
-          // first character on each iteration, the `contains` method stays at
-          // O(2) instead of O(n).
+          // By adding a padding to the front of `commentBuffer' and removing
+          // the first character on each iteration, the `contains` method stays
+          // at O(2) instead of O(n).
           var commentBuffer = " \(consumeCharacter())"
 
           repeat {
             buffer = consumeCharacter()
-            if buffer == EndOfPlainText {
+            if buffer == endOfPlainText {
               fatalError("Multi-line comment was not closed.")
             }
 
@@ -128,9 +115,12 @@ public class Lexer {
         }
       }
     } while matchedSkippable
+
+    return nil
   }
 
-  private static func lexIdentifiersAndKeywords(buffer: inout Character) -> Token {
+  static func lexIdentifier(buffer: inout Character) -> Token? {
+    guard buffer.belongs(to: .letters) else { return nil }
     var identifierBuffer = ""
 
     repeat {
@@ -138,30 +128,26 @@ public class Lexer {
       buffer = consumeCharacter()
     } while buffer.belongs(to: .alphanumerics)
 
-    // Returns a keyword token or an identifier token with the associated
-    // string.
-    switch identifierBuffer {
-    case "var": return Token.variable
-    case "func": return Token.function
-    case "extern": return Token.external
-    default: return Token.identifier(identifierBuffer)
-    }
+    // Returns an `.identifier` or `.keyword` dependent on `identifierBuffer`.
+    return Token.forIdentifier(identifierBuffer)
   }
 
-  private static func lexNumbers(buffer: inout Character) -> Token {
+  static func lexIntegerLiteral(buffer: inout Character) -> Token? {
+    guard buffer.belongs(to: .decimalDigits) else { return nil }
     var numberBuffer = ""
 
     repeat {
       numberBuffer.append(buffer)
       buffer = consumeCharacter()
-    } while buffer.belongs(to: .decimalDigits) ||
-      (buffer == "." && !numberBuffer.contains("."))
+    } while buffer.belongs(to: .decimalDigits) || buffer == "_"
 
-    guard let number = Double(numberBuffer) else {
-      fatalError("Was not able to convert `String` \"\(numberBuffer)\" to `Double`.")
+    let curatedBuffer = numberBuffer.replacingOccurrences(of: "_", with: "")
+    guard let integer = Int(curatedBuffer) else {
+      fatalError("Lexer Error: Was not able to convert `String` " +
+                  numberBuffer + " to `Int`.")
     }
 
-    return Token.number(number)
+    return .integerLiteral(integer)
   }
 }
 

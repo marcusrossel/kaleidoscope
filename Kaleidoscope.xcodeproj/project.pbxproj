@@ -10,6 +10,9 @@
 		DD204D3C1D591F8000CB7E17 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D3B1D591F8000CB7E17 /* main.swift */; };
 		DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D421D591FDE00CB7E17 /* Lexer.swift */; };
 		DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D431D591FDE00CB7E17 /* Parser.swift */; };
+		DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D461D5A399100CB7E17 /* AST Nodes.swift */; };
+		DDD750681D5C97480000AB98 /* Token.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD750671D5C97480000AB98 /* Token.swift */; };
+		DDD7506A1D5CAE770000AB98 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD750691D5CAE770000AB98 /* Helpers.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,6 +32,10 @@
 		DD204D3B1D591F8000CB7E17 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		DD204D421D591FDE00CB7E17 /* Lexer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lexer.swift; sourceTree = "<group>"; };
 		DD204D431D591FDE00CB7E17 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
+		DD204D461D5A399100CB7E17 /* AST Nodes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AST Nodes.swift"; sourceTree = "<group>"; };
+		DDD750671D5C97480000AB98 /* Token.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Token.swift; sourceTree = "<group>"; };
+		DDD750691D5CAE770000AB98 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
+		DDD7506B1D5CB37A0000AB98 /* BNF* Grammar */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "BNF* Grammar"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,9 +68,13 @@
 		DD204D3A1D591F8000CB7E17 /* Kaleidoscope */ = {
 			isa = PBXGroup;
 			children = (
-				DD204D421D591FDE00CB7E17 /* Lexer.swift */,
-				DD204D431D591FDE00CB7E17 /* Parser.swift */,
 				DD204D3B1D591F8000CB7E17 /* main.swift */,
+				DDD750671D5C97480000AB98 /* Token.swift */,
+				DD204D421D591FDE00CB7E17 /* Lexer.swift */,
+				DD204D461D5A399100CB7E17 /* AST Nodes.swift */,
+				DD204D431D591FDE00CB7E17 /* Parser.swift */,
+				DDD750691D5CAE770000AB98 /* Helpers.swift */,
+				DDD7506B1D5CB37A0000AB98 /* BNF* Grammar */,
 			);
 			path = Kaleidoscope;
 			sourceTree = "<group>";
@@ -129,7 +140,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */,
+				DDD7506A1D5CAE770000AB98 /* Helpers.swift in Sources */,
+				DDD750681D5C97480000AB98 /* Token.swift in Sources */,
 				DD204D3C1D591F8000CB7E17 /* main.swift in Sources */,
+				DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */,
 				DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -254,6 +268,7 @@
 				DD204D411D591F8000CB7E17 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
