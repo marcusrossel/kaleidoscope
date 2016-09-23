@@ -7,39 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DD204D3C1D591F8000CB7E17 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D3B1D591F8000CB7E17 /* main.swift */; };
-		DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D421D591FDE00CB7E17 /* Lexer.swift */; };
-		DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D431D591FDE00CB7E17 /* Parser.swift */; };
-		DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D461D5A399100CB7E17 /* AST Nodes.swift */; };
-		DDD750681D5C97480000AB98 /* Token.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD750671D5C97480000AB98 /* Token.swift */; };
-		DDD7506A1D5CAE770000AB98 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD750691D5CAE770000AB98 /* Helpers.swift */; };
+		DDA849A41D94188A00774BE8 /* LexerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCF827C1D89AC170040448E /* LexerProtocol.swift */; };
+		DDCF82891D89B01D0040448E /* Kaleidoscope Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCF82881D89B01D0040448E /* Kaleidoscope Tests.swift */; };
+		DDCF828E1D89B06D0040448E /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D421D591FDE00CB7E17 /* Lexer.swift */; };
+		DDCF828F1D89B0730040448E /* Token.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDCF827E1D89AC280040448E /* Token.swift */; };
+		DDCF82901D89B0780040448E /* AST Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D461D5A399100CB7E17 /* AST Nodes.swift */; };
+		DDCF82911D89B07B0040448E /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD204D431D591FDE00CB7E17 /* Parser.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		DD204D361D591F8000CB7E17 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		DD204D381D591F8000CB7E17 /* Kaleidoscope */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Kaleidoscope; sourceTree = BUILT_PRODUCTS_DIR; };
-		DD204D3B1D591F8000CB7E17 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		DD204D421D591FDE00CB7E17 /* Lexer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lexer.swift; sourceTree = "<group>"; };
 		DD204D431D591FDE00CB7E17 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
 		DD204D461D5A399100CB7E17 /* AST Nodes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AST Nodes.swift"; sourceTree = "<group>"; };
-		DDD750671D5C97480000AB98 /* Token.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Token.swift; sourceTree = "<group>"; };
-		DDD750691D5CAE770000AB98 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
-		DDD7506B1D5CB37A0000AB98 /* BNF* Grammar */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "BNF* Grammar"; sourceTree = "<group>"; };
+		DDCF827C1D89AC170040448E /* LexerProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LexerProtocol.swift; path = Kaleidoscope/LexerProtocol.swift; sourceTree = "<group>"; };
+		DDCF827E1D89AC280040448E /* Token.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Token.swift; sourceTree = "<group>"; };
+		DDCF82861D89B01D0040448E /* Kaleidoscope Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Kaleidoscope Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDCF82881D89B01D0040448E /* Kaleidoscope Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Kaleidoscope Tests.swift"; sourceTree = "<group>"; };
+		DDCF828A1D89B01D0040448E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		DD204D351D591F8000CB7E17 /* Frameworks */ = {
+		DDCF82831D89B01D0040448E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -53,6 +41,8 @@
 			isa = PBXGroup;
 			children = (
 				DD204D3A1D591F8000CB7E17 /* Kaleidoscope */,
+				DDCF82801D89AFC40040448E /* Dependencies */,
+				DDCF82871D89B01D0040448E /* Kaleidoscope Tests */,
 				DD204D391D591F8000CB7E17 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,7 +50,7 @@
 		DD204D391D591F8000CB7E17 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				DD204D381D591F8000CB7E17 /* Kaleidoscope */,
+				DDCF82861D89B01D0040448E /* Kaleidoscope Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -68,36 +58,50 @@
 		DD204D3A1D591F8000CB7E17 /* Kaleidoscope */ = {
 			isa = PBXGroup;
 			children = (
-				DD204D3B1D591F8000CB7E17 /* main.swift */,
-				DDD750671D5C97480000AB98 /* Token.swift */,
+				DDCF827E1D89AC280040448E /* Token.swift */,
 				DD204D421D591FDE00CB7E17 /* Lexer.swift */,
 				DD204D461D5A399100CB7E17 /* AST Nodes.swift */,
 				DD204D431D591FDE00CB7E17 /* Parser.swift */,
-				DDD750691D5CAE770000AB98 /* Helpers.swift */,
-				DDD7506B1D5CB37A0000AB98 /* BNF* Grammar */,
 			);
 			path = Kaleidoscope;
+			sourceTree = "<group>";
+		};
+		DDCF82801D89AFC40040448E /* Dependencies */ = {
+			isa = PBXGroup;
+			children = (
+				DDCF827C1D89AC170040448E /* LexerProtocol.swift */,
+			);
+			name = Dependencies;
+			sourceTree = "<group>";
+		};
+		DDCF82871D89B01D0040448E /* Kaleidoscope Tests */ = {
+			isa = PBXGroup;
+			children = (
+				DDCF82881D89B01D0040448E /* Kaleidoscope Tests.swift */,
+				DDCF828A1D89B01D0040448E /* Info.plist */,
+			);
+			path = "Kaleidoscope Tests";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		DD204D371D591F8000CB7E17 /* Kaleidoscope */ = {
+		DDCF82851D89B01D0040448E /* Kaleidoscope Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DD204D3F1D591F8000CB7E17 /* Build configuration list for PBXNativeTarget "Kaleidoscope" */;
+			buildConfigurationList = DDCF828B1D89B01D0040448E /* Build configuration list for PBXNativeTarget "Kaleidoscope Tests" */;
 			buildPhases = (
-				DD204D341D591F8000CB7E17 /* Sources */,
-				DD204D351D591F8000CB7E17 /* Frameworks */,
-				DD204D361D591F8000CB7E17 /* CopyFiles */,
+				DDCF82821D89B01D0040448E /* Sources */,
+				DDCF82831D89B01D0040448E /* Frameworks */,
+				DDCF82841D89B01D0040448E /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = Kaleidoscope;
-			productName = Kaleidoscope;
-			productReference = DD204D381D591F8000CB7E17 /* Kaleidoscope */;
-			productType = "com.apple.product-type.tool";
+			name = "Kaleidoscope Tests";
+			productName = "Kaleidoscope Tests";
+			productReference = DDCF82861D89B01D0040448E /* Kaleidoscope Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -109,10 +113,9 @@
 				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = "Marcus Rossel";
 				TargetAttributes = {
-					DD204D371D591F8000CB7E17 = {
+					DDCF82851D89B01D0040448E = {
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = 8YSJ38HAEZ;
-						DevelopmentTeamName = "Marcus Rossel (Personal Team)";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -129,22 +132,32 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				DD204D371D591F8000CB7E17 /* Kaleidoscope */,
+				DDCF82851D89B01D0040448E /* Kaleidoscope Tests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		DDCF82841D89B01D0040448E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
-		DD204D341D591F8000CB7E17 /* Sources */ = {
+		DDCF82821D89B01D0040448E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DD204D441D591FDE00CB7E17 /* Lexer.swift in Sources */,
-				DDD7506A1D5CAE770000AB98 /* Helpers.swift in Sources */,
-				DDD750681D5C97480000AB98 /* Token.swift in Sources */,
-				DD204D3C1D591F8000CB7E17 /* main.swift in Sources */,
-				DD204D471D5A399100CB7E17 /* AST Nodes.swift in Sources */,
-				DD204D451D591FDE00CB7E17 /* Parser.swift in Sources */,
+				DDA849A41D94188A00774BE8 /* LexerProtocol.swift in Sources */,
+				DDCF828F1D89B0730040448E /* Token.swift in Sources */,
+				DDCF828E1D89B06D0040448E /* Lexer.swift in Sources */,
+				DDCF82911D89B07B0040448E /* Parser.swift in Sources */,
+				DDCF82891D89B01D0040448E /* Kaleidoscope Tests.swift in Sources */,
+				DDCF82901D89B0780040448E /* AST Nodes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,17 +248,35 @@
 			};
 			name = Release;
 		};
-		DD204D401D591F8000CB7E17 /* Debug */ = {
+		DDCF828C1D89B01D0040448E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 8YSJ38HAEZ;
+				INFOPLIST_FILE = "Kaleidoscope Tests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.marcusrossel.Kaleidoscope-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
-		DD204D411D591F8000CB7E17 /* Release */ = {
+		DDCF828D1D89B01D0040448E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 8YSJ38HAEZ;
+				INFOPLIST_FILE = "Kaleidoscope Tests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.marcusrossel.Kaleidoscope-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -261,11 +292,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DD204D3F1D591F8000CB7E17 /* Build configuration list for PBXNativeTarget "Kaleidoscope" */ = {
+		DDCF828B1D89B01D0040448E /* Build configuration list for PBXNativeTarget "Kaleidoscope Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				DD204D401D591F8000CB7E17 /* Debug */,
-				DD204D411D591F8000CB7E17 /* Release */,
+				DDCF828C1D89B01D0040448E /* Debug */,
+				DDCF828D1D89B01D0040448E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

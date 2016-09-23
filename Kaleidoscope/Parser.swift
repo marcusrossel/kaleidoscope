@@ -6,59 +6,44 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-class Parser {
+final class Parser {
   private static func precedence(for token: Token) -> Int? {
     guard case let Token.other(`operator`) = token else { return nil }
 
     switch `operator` {
     case "<": return 10
+    case ">": return 10
     case "+": return 20
     case "-": return 20
     case "*": return 40
+    case "/": return 40
     default: return nil
     }
   }
 
-  static var currentToken = Lexer.nextToken()
+  static var lexer = Lexer()
+  static var currentToken = lexer.nextToken()
 
-  static func parseIntegerLiteralExpression() -> ExpressionNode? {
-    guard case let Token.integerLiteral(integer) = currentToken else {
-      print("Parser Error: Called \(#function) on inappropriate token.")
+  static func parseNumberLiteralExpression() -> ExpressionNode? {
+    guard case let Token.numberLiteral(number) = currentToken else {
+      print("Parser Error: Called \(#function) on \(currentToken).")
       return nil
     }
-    defer { currentToken = Lexer.nextToken() }
-    return IntegerExpressionNode(value: integer)
-  }
-
-  static func parseParenthesesExpression() -> ExpressionNode? {
-    guard case Token.other("(") = currentToken else {
-      print("Parser Error: Called \(#function) on inappropriate token.")
-      return nil
-    }
-    currentToken = Lexer.nextToken()
-
-    guard let enclosedExpression = Parser.parseExpression() else { return nil }
-
-    guard case Token.other(")") = currentToken else {
-      print("Syntax Error: Expected `)`.")
-      return nil
-    }
-
-    currentToken = Lexer.nextToken()
-    return enclosedExpression
+    defer { currentToken = lexer.nextToken() }
+    return NumberExpressionNode(value: number)
   }
 
   static func parseIdentifierExpression() -> ExpressionNode? {
     guard case let Token.identifier(identifier) = currentToken else {
-      print("Parser Error: Called \(#function) on inappropriate token.")
+      print("Parser Error: Called \(#function) on \(currentToken).")
       return nil
     }
-    currentToken = Lexer.nextToken()
+    currentToken = lexer.nextToken()
 
     guard case Token.other("(") = currentToken else {
       return VariableExpressionNode(name: identifier)
     }
-    currentToken = Lexer.nextToken()
+    currentToken = lexer.nextToken()
 
     var arguments = [ExpressionNode]()
 
@@ -74,17 +59,35 @@ class Parser {
           return nil
         }
 
-        currentToken = Lexer.nextToken()
+        currentToken = lexer.nextToken()
       }
     }
 
-    currentToken = Lexer.nextToken()
+    currentToken = lexer.nextToken()
     return CallExpressionNode(callee: identifier, arguments: arguments)
+  }
+
+  static func parseParenthesesExpression() -> ExpressionNode? {
+    guard case Token.other("(") = currentToken else {
+      print("Parser Error: Called \(#function) on \(currentToken).")
+      return nil
+    }
+    currentToken = lexer.nextToken()
+
+    guard let enclosedExpression = Parser.parseExpression() else { return nil }
+
+    guard case Token.other(")") = currentToken else {
+      print("Syntax Error: Expected `)`.")
+      return nil
+    }
+
+    currentToken = lexer.nextToken()
+    return enclosedExpression
   }
 
   static func parsePrimaryExpression() -> ExpressionNode? {
     let parsingFunctions = [
-      parseIntegerLiteralExpression,
+      parseNumberLiteralExpression,
       parseParenthesesExpression,
       parseIdentifierExpression
     ]
@@ -93,7 +96,7 @@ class Parser {
       if let node = function() { return node }
     }
 
-    print("Parser Error: Called \(#function) on inappropriate token.")
+    print("Parser Error: Called \(#function) on \(currentToken).")
     return nil
 
     /* LLVM Method
@@ -119,19 +122,22 @@ class Parser {
     lhs: inout ExpressionNode
   ) -> ExpressionNode? {
     while true {
-      guard let tokenPrecedence = Parser.precedence(for: currentToken)
-      where tokenPrecedence >= minimalPrecedence
-      else { return lhs }
+      guard
+        let tokenPrecedence = Parser.precedence(for: currentToken),
+        tokenPrecedence >= minimalPrecedence
+      else {
+        return lhs
+      }
 
       guard case let Token.other(binaryOperator) = currentToken else {
         fatalError("Extracting associated value from enumeration case failed.")
       }
-      currentToken = Lexer.nextToken()
+      currentToken = lexer.nextToken()
 
       guard var rhs = parsePrimaryExpression() else { return nil }
 
-      if let laterTokenPrecedence = precedence(for: currentToken)
-      where laterTokenPrecedence > tokenPrecedence {
+      if let laterTokenPrecedence = precedence(for: currentToken),
+      laterTokenPrecedence > tokenPrecedence {
         guard let rhsBuffer = parseBinaryOperation(
           minimalPrecedence: tokenPrecedence + 1,
           lhs: &rhs)

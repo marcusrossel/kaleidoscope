@@ -8,8 +8,8 @@
 
 protocol ExpressionNode { }
 
-struct IntegerExpressionNode: ExpressionNode {
-  let value: Int
+struct NumberExpressionNode: ExpressionNode {
+  let value: Double
 }
 
 struct VariableExpressionNode: ExpressionNode {
@@ -28,7 +28,7 @@ struct CallExpressionNode: ExpressionNode {
 
 struct PrototypeNode {
   var name: String
-  // Currently the only real type is `Number`, so the argument names are enough.
+  // Currently the only real type is a number, so the argument names are enough.
   var arguments: [String]
 }
 
