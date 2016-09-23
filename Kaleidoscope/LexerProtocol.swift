@@ -9,13 +9,14 @@
 import Foundation
 
 public protocol LexerProtocol: class {
+  /// The type used as the token-type by the lexer-class.
   associatedtype Token
 
   /// A token-transform that is guaranteed to produce a token.
   typealias GuaranteedTransform = (
     _ buffer: inout Character,
     _ lexer: Self
-    ) -> Token
+  ) -> Token
 
   /// A token-transform that might produce a token or could fail.
   typealias PossibleTransform = (
