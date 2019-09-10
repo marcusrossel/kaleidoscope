@@ -35,9 +35,9 @@ class KaleidoscopeTests: XCTestCase {
 
     // Test keywords.
     lexer.text = "var extern func function external variable"
-    XCTAssertEqual(lexer.nextToken(), .variableKeyword)
-    XCTAssertEqual(lexer.nextToken(), .externalKeyword)
-    XCTAssertEqual(lexer.nextToken(), .functionKeyword)
+    XCTAssertEqual(lexer.nextToken(), .keyword(.variable))
+    XCTAssertEqual(lexer.nextToken(), .keyword(.external))
+    XCTAssertEqual(lexer.nextToken(), .keyword(.function))
     XCTAssertEqual(lexer.nextToken(), .identifier("function"))
     XCTAssertEqual(lexer.nextToken(), .identifier("external"))
     XCTAssertEqual(lexer.nextToken(), .identifier("variable"))

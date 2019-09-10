@@ -67,11 +67,11 @@ public extension LexerProtocol {
     let nextCharacterIndex = position + stride - 1
 
     defer {
-      if !peek && nextCharacterIndex <= text.characters.count {
+      if !peek && nextCharacterIndex <= text.count {
         position += stride
       }
     }
-    guard nextCharacterIndex < text.characters.count else { return endOfFile }
+    guard nextCharacterIndex < text.count else { return endOfFile }
 
     return text[text.index(text.startIndex, offsetBy: position + stride - 1)]
   }
