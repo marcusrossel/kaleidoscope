@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "LexerProtocol",
+        "repositoryURL": "https://github.com/marcusrossel/lexer-protocol",
+        "state": {
+          "branch": "master",
+          "revision": "3f4700bdff265663ecf508d30451df1328791722",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

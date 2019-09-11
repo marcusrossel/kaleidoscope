@@ -1,38 +1,44 @@
 //
-//  Token.swift
+//  Lexer.swift
 //  Kaleidoscope
 //
 //  Created by Marcus Rossel on 14.09.16.
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
+import LexerProtocol
 import Foundation
 
-/// The token-type used by the lexer.
-enum Token: Equatable {
+final class Lexer: LexerProtocol {
     
-    case keyword(Keyword)
-    case identifier(String)
-    case numberLiteral(Double)
-    case other(Character)
-    
-    enum Keyword: String, Equatable {
-        case variable = "var"
-        case function = "func"
-        case external = "extern"
-    }
-}
+    typealias Token = Kaleidoscope.Token
 
-// Helper method.
-extension Character {
-    func isPart(of set: CharacterSet) -> Bool {
-        return String(self).rangeOfCharacter(from: set) != nil
+    var text = ""
+    var position = 0
+    var endOfText: Character = "\0"
+    
+    var defaultTransform: (inout Character, Lexer) -> Token = { buffer, _ in
+        .other(buffer)
+    }
+    
+    var tokenTransforms = [
+        TokenTransform.forSkippables,
+        TokenTransform.forIdentifiersAndKeywords,
+        TokenTransform.forNumbers,
+        TokenTransform.forSingleCharacterTokens,
+    ]
+    
+    /// Customizes the iteration behaviour of the lexer to stop when the end-of-file token is
+    /// encountered.
+    func next() -> Token? {
+        let token = nextToken()
+        return (token == .endOfFile) ? nil : token
     }
 }
 
 /// A namespace that contains all of the token-transforms used by the lexer.
 enum TokenTransform {
-    
+
     /// Detects and ignores whitespaces, single-, and multi-line comments.
     ///
     /// Single-line comments begin with `//` and end with a new-line character.
@@ -50,6 +56,7 @@ enum TokenTransform {
             if buffer.isPart(of: .whitespaces) {
                 matchedSkippable = true
                 buffer = lexer.nextCharacter()
+                continue
             }
             
             // Identifies and ignores comments.
@@ -65,7 +72,8 @@ enum TokenTransform {
                     
                     while !lexer.nextCharacter(peek: true).isPart(of: .newlines) {
                         buffer = lexer.nextCharacter()
-                        if buffer == lexer.endOfFile { break }
+                        print("here: ", buffer)
+                        if buffer == lexer.endOfText { break }
                     }
                 }
                 
@@ -83,7 +91,7 @@ enum TokenTransform {
                     
                     repeat {
                         buffer = lexer.nextCharacter()
-                        if buffer == lexer.endOfFile {
+                        if buffer == lexer.endOfText {
                             fatalError("Multi-line comment was not closed.")
                         }
                         
@@ -176,7 +184,7 @@ enum TokenTransform {
             buffer = lexer.nextCharacter()
         } while
             validCharacters.contains(String(buffer)) ||
-                (!literalMustBeInteger && isValidDecimalPoint(buffer))
+            (!literalMustBeInteger && isValidDecimalPoint(buffer))
         
         // Removes the `_` characters, because otherwise the number-from-string
         // initializers fail.
@@ -211,16 +219,15 @@ enum TokenTransform {
     // can contain either any alphanumeric character or `_`.
     //
     // Valid keywords are determined by `Token.Keyword`'s raw values.
-    static func forIdentifiers(_ buffer: inout Character, _ lexer: Lexer)
-        -> Token? {
+    static func forIdentifiersAndKeywords(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
         guard buffer.isPart(of: .letters) || buffer == "_" else { return nil }
         var identifierBuffer = ""
-            
+        
         repeat {
             identifierBuffer.append(buffer)
             buffer = lexer.nextCharacter()
         } while buffer.isPart(of: .alphanumerics) || buffer == "_"
-            
+        
         // Returns an `.identifier` or `.keyword` depending on the
         // identifier buffer.
         if let keyword = Token.Keyword(rawValue: identifierBuffer) {
@@ -228,5 +235,24 @@ enum TokenTransform {
         } else {
             return .identifier(identifierBuffer)
         }
+    }
+    
+    static func forSingleCharacterTokens(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+        defer { buffer = lexer.nextCharacter() }
+        
+        if let `operator` = Operator(rawValue: buffer) {
+            return .operator(`operator`)
+        } else if let symbol = Token.Symbol(rawValue: buffer) {
+            return .symbol(symbol)
+        } else {
+            return nil
+        }
+    }
+}
+
+// Helper method.
+extension Character {
+    func isPart(of set: CharacterSet) -> Bool {
+        return String(self).rangeOfCharacter(from: set) != nil
     }
 }
