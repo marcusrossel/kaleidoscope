@@ -51,7 +51,7 @@ final class LexerTests: XCTestCase {
         lexer.text = "a/*abc 123 _?*/bc // To EOL \n 123/*\n*/456"
         XCTAssertEqual(lexer.nextToken(), .identifier("a"))
         XCTAssertEqual(lexer.nextToken(), .identifier("bc"))
-        XCTAssertEqual(lexer.nextToken(), .other("\n"))
+        XCTAssertEqual(lexer.nextToken(), .symbol(.newLine))
         XCTAssertEqual(lexer.nextToken(), .numberLiteral(123))
         XCTAssertEqual(lexer.nextToken(), .numberLiteral(456))
         
@@ -77,13 +77,12 @@ final class LexerTests: XCTestCase {
         // Test other.
         lexer.text = "123_._45 ?? \n"
         XCTAssertEqual(lexer.nextToken(), .numberLiteral(123))
-        XCTAssertEqual(lexer.nextToken(), .other("_"))
         XCTAssertEqual(lexer.nextToken(), .other("."))
         XCTAssertEqual(lexer.nextToken(), .identifier("_45"))
         XCTAssertEqual(lexer.nextToken(), .other("?"))
         XCTAssertEqual(lexer.nextToken(), .other("?"))
-        XCTAssertEqual(lexer.nextToken(), .other("\n"))
-        XCTAssertEqual(lexer.nextToken(), .endOfFile)
+        XCTAssertEqual(lexer.nextToken(), .symbol(.newLine))
+        XCTAssertEqual(lexer.nextToken(), .symbol(.endOfFile))
     }
 
 }

@@ -18,30 +18,47 @@ enum Token: Equatable {
     case `operator`(Operator)
     case symbol(Symbol)
     
-    case endOfFile
     case other(Character)
     
-    enum Keyword: String, Equatable {
+    enum Keyword: String, Equatable, CustomDebugStringConvertible {
         case `if`
         case then
         case `else`
         case function = "func"
         case external = "extern"
+        
+        var debugDescription: String {
+            return rawValue
+        }
     }
     
-    enum Symbol: Character, Equatable {
+    enum Symbol: Character, Equatable, CustomDebugStringConvertible {
+        case endOfFile = "\0"
+        case newLine = "\n"
         case leftParenthesis = "("
         case rightParenthesis = ")"
         case comma = ","
         case semicolon = ";"
+        
+        var debugDescription: String {
+            switch self {
+            case .endOfFile: return "EOF"
+            case .newLine: return "newLine"
+            default: return "\"\(rawValue)\""
+            }
+        }
     }
 }
 
-enum Operator: Character, Equatable {
+enum Operator: Character, Equatable, CustomDebugStringConvertible {
     case plus = "+"
     case minus = "-"
     case times = "*"
     case divide = "/"
     case modulo = "%"
     case equals = "="
+    
+    var debugDescription: String {
+        return "\"\(rawValue)\""
+    }
 }

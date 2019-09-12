@@ -13,12 +13,17 @@ final class Lexer: LexerProtocol {
     
     typealias Token = Kaleidoscope.Token
 
+    init(text: String) {
+        self.text = text
+    }
+    
     var text = ""
     var position = 0
     var endOfText: Character = "\0"
     
-    var defaultTransform: (inout Character, Lexer) -> Token = { buffer, _ in
-        .other(buffer)
+    var defaultTransform: (inout Character, Lexer) -> Token = { buffer, lexer in
+        defer { buffer = lexer.nextCharacter() }
+        return .other(buffer)
     }
     
     var tokenTransforms = [
@@ -32,84 +37,85 @@ final class Lexer: LexerProtocol {
     /// encountered.
     func next() -> Token? {
         let token = nextToken()
-        return (token == .endOfFile) ? nil : token
+        return (token == .symbol(.endOfFile)) ? nil : token
     }
 }
 
 /// A namespace that contains all of the token-transforms used by the lexer.
 enum TokenTransform {
 
-    /// Detects and ignores whitespaces, single-, and multi-line comments.
+    /// Combines the whitespace and comment transforms, as they always return `nil` and can
+    /// therefore not "restart the lexer's transform-pipeline".
+    ///
+    /// This method only works as long as this transform is the first.
+    @discardableResult
+    fileprivate static func forSkippables(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+        var initialPosition: Int
+        
+        repeat {
+            initialPosition = lexer.position
+            
+            TokenTransform.forWhitespace(&buffer, lexer)
+            TokenTransform.forComments(&buffer, lexer)
+        } while lexer.position != initialPosition
+        
+        return nil
+    }
+    
+    /// Detects and ignores whitespace.
+    ///
+    /// - Returns: `nil`
+    @discardableResult
+    fileprivate static func forWhitespace(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+        while buffer.isPart(of: .whitespaces) { buffer = lexer.nextCharacter() }
+        return nil
+    }
+    
+    /// Detects and ignores single- and multi-line comments.
     ///
     /// Single-line comments begin with `//` and end with a new-line character.
     /// Multi-line comments begin with `/*` and end with `*/`.
     ///
     /// - Returns: `nil`
     @discardableResult
-    static func forSkippables(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        var matchedSkippable: Bool
+    fileprivate static func forComments(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+        guard buffer == "/" else { return nil }
+    
+        // Handles single-line comments.
+        if lexer.nextCharacter(peek: true) == "/" {
+            let singleLineTerminators = CharacterSet.newlines.union(.init(charactersIn: "\0"))
+            
+            repeat { buffer = lexer.nextCharacter() }
+            while !buffer.isPart(of: singleLineTerminators)
+        }
         
-        repeat {
-            matchedSkippable = false
+        // Handles multi-line comments.
+        if lexer.nextCharacter(peek: true) == "*" {
+            buffer = lexer.nextCharacter() // buffer = "*"
             
-            // Identifies and ignores whitespaces.
-            if buffer.isPart(of: .whitespaces) {
-                matchedSkippable = true
+            // By adding a padding to the front of `commentBuffer` and removing
+            // the first character on each iteration, the string comparison stays at O(1) instead of
+            // O(n). The array reallocation should also be O(1) each iteration, as array.count == 3
+            // is invariant.
+            var commentBuffer = "  " // two spaces
+            
+            repeat {
                 buffer = lexer.nextCharacter()
-                continue
-            }
+                
+                guard buffer != lexer.endOfText else {
+                    print("Syntax Error: Multi-line comment was not closed.")
+                    return nil
+                }
+                
+                commentBuffer.append(buffer)
+                commentBuffer.remove(at: commentBuffer.startIndex)
+            } while commentBuffer != "*/"
             
-            // Identifies and ignores comments.
-            if buffer == "/" {
-                var matchedComment = false
-                
-                // Handles single-line comments.
-                if lexer.nextCharacter(peek: true) == "/" {
-                    matchedComment = true
-                    
-                    // Could be omitted.
-                    buffer = lexer.nextCharacter()
-                    
-                    while !lexer.nextCharacter(peek: true).isPart(of: .newlines) {
-                        buffer = lexer.nextCharacter()
-                        print("here: ", buffer)
-                        if buffer == lexer.endOfText { break }
-                    }
-                }
-                
-                // Handles multi-line comments.
-                if lexer.nextCharacter(peek: true) == "*" {
-                    matchedComment = true
-                    
-                    // Could be omitted.
-                    buffer = lexer.nextCharacter()
-                    
-                    // By adding a padding to the front of `commentBuffer` and removing
-                    // the first character on each iteration, the `contains` method stays
-                    // at O(2) instead of O(n).
-                    var commentBuffer = " \(lexer.nextCharacter())"
-                    
-                    repeat {
-                        buffer = lexer.nextCharacter()
-                        if buffer == lexer.endOfText {
-                            fatalError("Multi-line comment was not closed.")
-                        }
-                        
-                        commentBuffer.append(buffer)
-                        commentBuffer.remove(at: commentBuffer.startIndex)
-                    } while !commentBuffer.contains("*/")
-                }
-                
-                if matchedComment {
-                    // Set the buffer to the first character after a comment.
-                    buffer = lexer.nextCharacter()
-                    matchedSkippable = true
-                }
-            }
-        } while matchedSkippable
+            buffer = lexer.nextCharacter()
+        }
         
         return nil
-    }
+    }    
     
     /// Detects binary, octal, decimal and hexadecimal integer literals as well as
     /// floating-point literals.
@@ -122,7 +128,7 @@ enum TokenTransform {
     /// - Returns: An `.integer` token if an integer literal was detected, a
     /// `.floatingPoint` token if a floating-point token was detected, otherwise
     /// `nil`.
-    static func forNumbers(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+    fileprivate static func forNumbers(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
         // Determines if the number is negative, and if the first character after
         // the sign-character even qualifies for a number.
         let numberIsNegative = buffer == "-"
@@ -219,14 +225,17 @@ enum TokenTransform {
     // can contain either any alphanumeric character or `_`.
     //
     // Valid keywords are determined by `Token.Keyword`'s raw values.
-    static func forIdentifiersAndKeywords(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        guard buffer.isPart(of: .letters) || buffer == "_" else { return nil }
+    fileprivate static func forIdentifiersAndKeywords(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+        let validPrefix = CharacterSet.letters.union(.init(charactersIn: "_"))
+        let validBody = CharacterSet.alphanumerics.union(.init(charactersIn: "_"))
+        
+        guard buffer.isPart(of: validPrefix) else { return nil }
         var identifierBuffer = ""
         
         repeat {
             identifierBuffer.append(buffer)
             buffer = lexer.nextCharacter()
-        } while buffer.isPart(of: .alphanumerics) || buffer == "_"
+        } while buffer.isPart(of: validBody)
         
         // Returns an `.identifier` or `.keyword` depending on the
         // identifier buffer.
@@ -238,11 +247,11 @@ enum TokenTransform {
     }
     
     static func forSingleCharacterTokens(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        defer { buffer = lexer.nextCharacter() }
-        
         if let `operator` = Operator(rawValue: buffer) {
+            buffer = lexer.nextCharacter()
             return .operator(`operator`)
         } else if let symbol = Token.Symbol(rawValue: buffer) {
+            buffer = lexer.nextCharacter()
             return .symbol(symbol)
         } else {
             return nil
@@ -252,7 +261,7 @@ enum TokenTransform {
 
 // Helper method.
 extension Character {
-    func isPart(of set: CharacterSet) -> Bool {
+    fileprivate func isPart(of set: CharacterSet) -> Bool {
         return String(self).rangeOfCharacter(from: set) != nil
     }
 }

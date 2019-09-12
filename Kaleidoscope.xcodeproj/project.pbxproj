@@ -21,6 +21,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		2C4E3A3923293B0A00F737A8 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4E3A3823293B0A00F737A8 /* main.swift */; };
 		OBJ_33 /* AST.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_9 /* AST.swift */; };
 		OBJ_34 /* Lexer.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_10 /* Lexer.swift */; };
 		OBJ_35 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_11 /* Parser.swift */; };
@@ -68,6 +69,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2C4E3A3823293B0A00F737A8 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		"Kaleidoscope::Kaleidoscope::Product" /* Kaleidoscope.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Kaleidoscope.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"Kaleidoscope::KaleidoscopeTests::Product" /* KaleidoscopeTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = KaleidoscopeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		"LexerProtocol::LexerProtocol::Product" /* LexerProtocol.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = LexerProtocol.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -167,7 +169,7 @@
 			name = Products;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		OBJ_5 /*  */ = {
+		OBJ_5 = {
 			isa = PBXGroup;
 			children = (
 				OBJ_6 /* Package.swift */,
@@ -177,7 +179,6 @@
 				OBJ_23 /* Products */,
 				OBJ_27 /* README.md */,
 			);
-			name = "";
 			sourceTree = "<group>";
 		};
 		OBJ_7 /* Sources */ = {
@@ -191,6 +192,7 @@
 		OBJ_8 /* Kaleidoscope */ = {
 			isa = PBXGroup;
 			children = (
+				2C4E3A3823293B0A00F737A8 /* main.swift */,
 				OBJ_12 /* Token.swift */,
 				OBJ_10 /* Lexer.swift */,
 				OBJ_9 /* AST.swift */,
@@ -299,7 +301,7 @@
 				English,
 				en,
 			);
-			mainGroup = OBJ_5 /*  */;
+			mainGroup = OBJ_5;
 			productRefGroup = OBJ_23 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -320,6 +322,7 @@
 			buildActionMask = 0;
 			files = (
 				OBJ_33 /* AST.swift in Sources */,
+				2C4E3A3923293B0A00F737A8 /* main.swift in Sources */,
 				OBJ_34 /* Lexer.swift in Sources */,
 				OBJ_35 /* Parser.swift in Sources */,
 				OBJ_36 /* Token.swift in Sources */,

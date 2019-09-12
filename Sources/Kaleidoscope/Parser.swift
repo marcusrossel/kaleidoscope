@@ -29,23 +29,43 @@ final class Parser<Tokens: IteratorProtocol> where Tokens.Element == Token {
     
     init(tokens: Tokens) {
         self.tokens = tokens
-        currentToken = self.tokens.next()
+        consumeToken()
     }
     
     var tokens: Tokens
     // This value being `nil` is equivalent to an EOF.
     private var currentToken: Token?
     
-    private func consumeToken() {
-        currentToken = tokens.next()
+    private func consumeToken(ignoringNewLines: Bool = true) {
+        repeat { currentToken = tokens.next() }
+        while ignoringNewLines && currentToken == .symbol(.newLine)
     }
     
-    private func consumeToken(_ target: Token) throws {
+    private func consumeToken(_ target: Token, ignoringNewLines: Bool = true) throws {
+        if ignoringNewLines && currentToken == .symbol(.newLine) { consumeToken() }
+        
         if currentToken != target {
             throw Error.unexpectedToken(currentToken)
         } else {
             consumeToken()
         }
+    }
+    
+    func parseFile() throws -> File {
+        var file = File()
+        
+        while currentToken != nil {
+            switch currentToken {
+            case .keyword(.external)?:
+                file.externals.append(try parseExternalFunction())
+            case .keyword(.function)?:
+                file.functions.append(try parseFunction())
+            default:
+                file.expressions.append(try parseExpression())
+            }
+        }
+        
+        return file
     }
 }
 
@@ -79,14 +99,14 @@ extension Parser {
 // Functions
 extension Parser {
     
-    func parsePrototype() throws -> Prototype {
+    private func parsePrototype() throws -> Prototype {
         let identifier = try parseIdentifier()
         let parameters = try parseTuple(parsingFunction: parseIdentifier)
         
         return Prototype(name: identifier, arguments: parameters)
     }
     
-    func parseExternalFunction() throws -> Prototype {
+    private func parseExternalFunction() throws -> Prototype {
         try consumeToken(.keyword(.external))
         let prototype = try parsePrototype()
         try consumeToken(.symbol(.semicolon))
@@ -94,7 +114,7 @@ extension Parser {
         return prototype
     }
     
-    func parseFunction() throws -> Function {
+    private func parseFunction() throws -> Function {
         try consumeToken(.keyword(.function))
         let prototype = try parsePrototype()
         let expression = try parseExpression()
@@ -107,7 +127,7 @@ extension Parser {
 // Expressions
 extension Parser {
     
-    func parseExpression() throws -> Expression {
+    private func parseExpression() throws -> Expression {
         var expression: Expression
         
         switch currentToken {
@@ -130,7 +150,7 @@ extension Parser {
         return expression
     }
     
-    func parseParenthesizedExpression() throws -> Expression {
+    private func parseParenthesizedExpression() throws -> Expression {
         try consumeToken(.symbol(.leftParenthesis))
         let enclosedExpression = try parseExpression()
         try consumeToken(.symbol(.rightParenthesis))
@@ -138,14 +158,14 @@ extension Parser {
         return enclosedExpression
     }
     
-    func parseCallExpression() throws -> Expression {
+    private func parseCallExpression() throws -> Expression {
         let identifier = try parseIdentifier()
         let arguments = try parseTuple(parsingFunction: parseExpression)
         
         return .call(identifier, arguments: arguments)
     }
     
-    func parseIfExpression() throws -> Expression {
+    private func parseIfExpression() throws -> Expression {
         try consumeToken(.keyword(.if))
         let condition = try parseExpression()
         try consumeToken(.keyword(.then))
@@ -156,7 +176,7 @@ extension Parser {
         return .if(condition: condition, then: then, else: `else`)
     }
     
-    func parseNumberExpression() throws -> Expression {
+    private func parseNumberExpression() throws -> Expression {
         guard case let Token.numberLiteral(number)? = currentToken else {
             throw Error.unexpectedToken(currentToken)
         }
@@ -165,7 +185,7 @@ extension Parser {
         return .number(number)
     }
     
-    func parseBinaryExpressionFromOperator(lhs: Expression) throws -> Expression {
+    private func parseBinaryExpressionFromOperator(lhs: Expression) throws -> Expression {
         guard case let Token.operator(`operator`)? = currentToken else {
             throw Error.unexpectedToken(currentToken)
         }
