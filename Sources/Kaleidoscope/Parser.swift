@@ -8,16 +8,16 @@
 
 /* Target grammar:
  
- <prototype>  ::= <identifier> "(" <params> ")"
- <params>     ::= <identifier> | <identifier>, <params>
- <definition> ::= "def" <prototype> <expr> ";"
+ <function> ::= "func" <prototype> <expr> ";"
  <extern>     ::= "extern" <prototype> ";"
- <operator>   ::= "+" | "-" | "*" | "/" | "%"
+ <prototype>  ::= <identifier> "(" <params> ")"
+ <params>     ::= <identifier> | <identifier> "," <params>
  <expr>       ::= <binary> | <call> | <identifier> | <number> | <ifelse> | "(" <expr> ")"
- <binary>     ::= <expr> <operator> <expr>
  <call>       ::= <identifier> "(" <arguments> ")"
- <ifelse>     ::= "if" <expr> "then" <expr> "else" <expr>
  <arguments>  ::= <expr> | <expr> "," <arguments>
+ <ifelse>     ::= "if" <expr> "then" <expr> "else" <expr>
+ <binary>     ::= <expr> <operator> <expr>
+ <operator>   ::= "+" | "-" | "*" | "/" | "%"
  
 */
 
