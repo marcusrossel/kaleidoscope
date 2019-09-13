@@ -8,31 +8,31 @@
 
 /* Target grammar:
  
- <function> ::= "func" <prototype> <expr> ";"
- <extern>     ::= "extern" <prototype> ";"
- <prototype>  ::= <identifier> "(" <params> ")"
- <params>     ::= <identifier> | <identifier> "," <params>
- <expr>       ::= <binary> | <call> | <identifier> | <number> | <ifelse> | "(" <expr> ")"
- <call>       ::= <identifier> "(" <arguments> ")"
- <arguments>  ::= <expr> | <expr> "," <arguments>
- <ifelse>     ::= "if" <expr> "then" <expr> "else" <expr>
- <binary>     ::= <expr> <operator> <expr>
- <operator>   ::= "+" | "-" | "*" | "/" | "%"
+<function>  ::= "func" <prototype> <expr> ";"
+<extern>    ::= "extern" <prototype> ";"
+<prototype> ::= <identifier> "(" <params> ")"
+<params>    ::= <identifier> | <identifier> "," <params>
+<expr>      ::= <binary> | <call> | <identifier> | <number> | <ifelse> | "(" <expr> ")"
+<call>      ::= <identifier> "(" <arguments> ")"
+<arguments> ::= <expr> | <expr> "," <arguments>
+<ifelse>    ::= "if" <expr> "then" <expr> "else" <expr>
+<binary>    ::= <expr> <operator> <expr>
+<operator>  ::= "+" | "-" | "*" | "/" | "%"
  
 */
 
-final class Parser<Tokens: IteratorProtocol> where Tokens.Element == Token {
+public final class Parser<Tokens: IteratorProtocol> where Tokens.Element == Token {
     
-    enum Error: Swift.Error {
+    public enum Error: Swift.Error {
         case unexpectedToken(Token?)
     }
     
-    init(tokens: Tokens) {
+    public init(tokens: Tokens) {
         self.tokens = tokens
         consumeToken()
     }
     
-    var tokens: Tokens
+    private var tokens: Tokens
     // This value being `nil` is equivalent to an EOF.
     private var currentToken: Token?
     
@@ -51,7 +51,7 @@ final class Parser<Tokens: IteratorProtocol> where Tokens.Element == Token {
         }
     }
     
-    func parseFile() throws -> File {
+    public func parseFile() throws -> File {
         var file = File()
         
         while currentToken != nil {

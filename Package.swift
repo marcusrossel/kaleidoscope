@@ -6,9 +6,8 @@ import PackageDescription
 let package = Package(
     name: "Kaleidoscope",
     
-    platforms: [
-        .macOS(.v10_14), // Necessary to use LLVM.
-    ],
+    // Necessary to use LLVM.
+    platforms: [.macOS(.v10_14)],
     
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
@@ -32,14 +31,19 @@ let package = Package(
             providers: [.brew(["llvm"])]
         ),
         .target(
-            name: "Kaleidoscope",
+            name: "KaleidoscopeLib",
             dependencies: ["LexerProtocol", "CLLVM"]
         ),
+        .target(
+            name: "Kaleidoscope",
+            dependencies: ["KaleidoscopeLib"]
+        ),
         .testTarget(
-            name: "KaleidoscopeTests",
-            dependencies: ["Kaleidoscope"]
+            name: "KaleidoscopeLibTests",
+            dependencies: ["KaleidoscopeLib"]
         ),
     ],
     
-    cxxLanguageStandard: .cxx14 // Maybe this is needed? (https://forums.swift.org/t/llvm-is-now-on-c-14/27931)
+    // Maybe this is needed? (https://forums.swift.org/t/llvm-is-now-on-c-14/27931)
+    cxxLanguageStandard: .cxx14
 )

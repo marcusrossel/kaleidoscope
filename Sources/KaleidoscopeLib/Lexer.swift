@@ -9,24 +9,24 @@
 import LexerProtocol
 import Foundation
 
-final class Lexer: LexerProtocol {
+public final class Lexer: LexerProtocol {
     
-    typealias Token = Kaleidoscope.Token
+    public typealias Token = KaleidoscopeLib.Token
 
-    init(text: String) {
-        self.text = text
+    public init(text: String? = nil) {
+        self.text = text ?? ""
     }
     
-    var text = ""
-    var position = 0
-    var endOfText: Character = "\0"
+    public var text = ""
+    public var position = 0
+    public var endOfText: Character = "\0"
     
-    var defaultTransform: (inout Character, Lexer) -> Token = { buffer, lexer in
+    public var defaultTransform: (inout Character, Lexer) -> Token = { buffer, lexer in
         defer { buffer = lexer.nextCharacter() }
         return .other(buffer)
     }
     
-    var tokenTransforms = [
+    public var tokenTransforms = [
         TokenTransform.forSkippables,
         TokenTransform.forIdentifiersAndKeywords,
         TokenTransform.forNumbers,
@@ -35,21 +35,21 @@ final class Lexer: LexerProtocol {
     
     /// Customizes the iteration behaviour of the lexer to stop when the end-of-file token is
     /// encountered.
-    func next() -> Token? {
+    public func next() -> Token? {
         let token = nextToken()
         return (token == .symbol(.endOfFile)) ? nil : token
     }
 }
 
 /// A namespace that contains all of the token-transforms used by the lexer.
-enum TokenTransform {
+private enum TokenTransform {
 
     /// Combines the whitespace and comment transforms, as they always return `nil` and can
     /// therefore not "restart the lexer's transform-pipeline".
     ///
     /// This method only works as long as this transform is the first.
     @discardableResult
-    fileprivate static func forSkippables(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+    static func forSkippables(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
         var initialPosition: Int
         
         repeat {
@@ -66,7 +66,7 @@ enum TokenTransform {
     ///
     /// - Returns: `nil`
     @discardableResult
-    fileprivate static func forWhitespace(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+    private static func forWhitespace(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
         while buffer.isPart(of: .whitespaces) { buffer = lexer.nextCharacter() }
         return nil
     }
@@ -78,7 +78,7 @@ enum TokenTransform {
     ///
     /// - Returns: `nil`
     @discardableResult
-    fileprivate static func forComments(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+    private static func forComments(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
         guard buffer == "/" else { return nil }
     
         // Handles single-line comments.
@@ -128,7 +128,7 @@ enum TokenTransform {
     /// - Returns: An `.integer` token if an integer literal was detected, a
     /// `.floatingPoint` token if a floating-point token was detected, otherwise
     /// `nil`.
-    fileprivate static func forNumbers(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+    static func forNumbers(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
         // Determines if the number is negative, and if the first character after
         // the sign-character even qualifies for a number.
         let numberIsNegative = buffer == "-"
@@ -225,7 +225,7 @@ enum TokenTransform {
     // can contain either any alphanumeric character or `_`.
     //
     // Valid keywords are determined by `Token.Keyword`'s raw values.
-    fileprivate static func forIdentifiersAndKeywords(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
+    static func forIdentifiersAndKeywords(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
         let validPrefix = CharacterSet.letters.union(.init(charactersIn: "_"))
         let validBody = CharacterSet.alphanumerics.union(.init(charactersIn: "_"))
         
@@ -260,8 +260,8 @@ enum TokenTransform {
 }
 
 // Helper method.
-extension Character {
-    fileprivate func isPart(of set: CharacterSet) -> Bool {
+private extension Character {
+    func isPart(of set: CharacterSet) -> Bool {
         return String(self).rangeOfCharacter(from: set) != nil
     }
 }

@@ -6,23 +6,23 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-struct File {
+public struct File {
     var functions: [Function] = []
     var externals: [Prototype] = []
     var expressions: [Expression] = []
 }
 
-struct Prototype {
+public struct Prototype {
     var name: String
     var arguments: [String]
 }
 
-struct Function {
+public struct Function {
     var head: Prototype
     var body: Expression
 }
 
-indirect enum Expression {
+public indirect enum Expression {
     case number(Double)
     case variable(String)
     case binary(lhs: Expression, operator: Operator, rhs: Expression)

@@ -5,6 +5,8 @@
 //  Created by Marcus Rossel on 11.09.19.
 //
 
+import KaleidoscopeLib
+
 let program = """
 //
 // An example program in the Kaleidoscope language.

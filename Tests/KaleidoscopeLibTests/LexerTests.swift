@@ -1,5 +1,5 @@
 import XCTest
-@testable import Kaleidoscope
+@testable import KaleidoscopeLib
 
 final class LexerTests: XCTestCase {
 

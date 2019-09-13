@@ -7,14 +7,14 @@
 
 extension Token.Keyword: CustomDebugStringConvertible {
     
-    var debugDescription: String {
+    public var debugDescription: String {
         return rawValue
     }
 }
 
 extension Token.Symbol: CustomDebugStringConvertible {
     
-    var debugDescription: String {
+    public var debugDescription: String {
         switch self {
         case .endOfFile: return "EOF"
         case .newLine: return "newLine"
@@ -25,14 +25,14 @@ extension Token.Symbol: CustomDebugStringConvertible {
 
 extension Operator: CustomDebugStringConvertible {
     
-    var debugDescription: String {
+    public var debugDescription: String {
         return "\"\(rawValue)\""
     }
 }
 
 extension File: CustomDebugStringConvertible {
     
-    var debugDescription: String {
+    public var debugDescription: String {
         var description = "File<"
         
         description += "\n  Functions:"
@@ -52,21 +52,21 @@ extension File: CustomDebugStringConvertible {
 
 extension Prototype: CustomDebugStringConvertible {
     
-    var debugDescription: String {
+    public var debugDescription: String {
         return "Prototype<\(name)(\(arguments.joined(separator: ", ")))>"
     }
 }
 
 extension Function: CustomDebugStringConvertible {
     
-    var debugDescription: String {
+    public var debugDescription: String {
         return "Function<\(head) | \(body)>"
     }
 }
 
 extension Expression: CustomDebugStringConvertible {
     
-    var debugDescription: String {
+    public var debugDescription: String {
         switch self {
         case .number(let value):
             return "\(value)"

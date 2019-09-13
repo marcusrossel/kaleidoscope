@@ -9,7 +9,7 @@
 import LexerProtocol
 
 /// The token-type used by the lexer.
-enum Token: Equatable {
+public enum Token: Equatable {
     
     case keyword(Keyword)
     case identifier(String)
@@ -20,7 +20,7 @@ enum Token: Equatable {
     
     case other(Character)
     
-    enum Keyword: String, Equatable {
+    public enum Keyword: String, Equatable {
         case `if`
         case then
         case `else`
@@ -28,7 +28,7 @@ enum Token: Equatable {
         case external = "extern"
     }
     
-    enum Symbol: Character, Equatable {
+    public enum Symbol: Character, Equatable {
         case endOfFile = "\0"
         case newLine = "\n"
         case leftParenthesis = "("
@@ -38,7 +38,7 @@ enum Token: Equatable {
     }
 }
 
-enum Operator: Character, Equatable {
+public enum Operator: Character, Equatable {
     case plus = "+"
     case minus = "-"
     case times = "*"
