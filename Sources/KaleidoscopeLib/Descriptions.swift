@@ -53,7 +53,7 @@ extension File: CustomDebugStringConvertible {
 extension Prototype: CustomDebugStringConvertible {
     
     public var debugDescription: String {
-        return "Prototype<\(name)(\(arguments.joined(separator: ", ")))>"
+        return "Prototype<\(name)(\(parameters.joined(separator: ", ")))>"
     }
 }
 

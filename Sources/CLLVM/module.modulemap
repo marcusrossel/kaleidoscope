@@ -1,4 +1,5 @@
+// https://llvm.org/doxygen/group__LLVMC.html
 module CLLVM [system] {
-  header "umbrella.h"
-  export *
+  umbrella header "umbrella.h"
+  module * { export * }
 }

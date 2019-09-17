@@ -14,7 +14,7 @@ public struct File {
 
 public struct Prototype {
     var name: String
-    var arguments: [String]
+    var parameters: [String]
 }
 
 public struct Function {

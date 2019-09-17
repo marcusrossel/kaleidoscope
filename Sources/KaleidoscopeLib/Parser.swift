@@ -103,7 +103,7 @@ extension Parser {
         let identifier = try parseIdentifier()
         let parameters = try parseTuple(parsingFunction: parseIdentifier)
         
-        return Prototype(name: identifier, arguments: parameters)
+        return Prototype(name: identifier, parameters: parameters)
     }
     
     private func parseExternalFunction() throws -> Prototype {
