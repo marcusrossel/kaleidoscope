@@ -51,21 +51,21 @@ public final class Parser<Tokens: IteratorProtocol> where Tokens.Element == Toke
         }
     }
     
-    public func parseFile() throws -> File {
-        var file = File()
+    public func parseFile() throws -> AST {
+        var ast = AST()
         
         while currentToken != nil {
             switch currentToken {
             case .keyword(.external)?:
-                file.externals.append(try parseExternalFunction())
+                ast.externals.append(try parseExternalFunction())
             case .keyword(.function)?:
-                file.functions.append(try parseFunction())
+                ast.functions.append(try parseFunction())
             default:
-                file.expressions.append(try parseExpression())
+                ast.expressions.append(try parseExpression())
             }
         }
         
-        return file
+        return ast
     }
 }
 

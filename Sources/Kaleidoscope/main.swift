@@ -7,24 +7,40 @@
 
 import KaleidoscopeLib
 import CLLVM
+import Foundation
 
-let program = """
-//
-// An example program in the Kaleidoscope language.
-//
+// Helper for converting proper booleans back into numbers.
+extension BinaryInteger {
+    
+    init(_ bool: Bool) {
+        self.init()
+        self = bool ? 1 : 0
+    }
+}
 
-extern printf(string);
-extern run(start, increment);
+guard CommandLine.arguments.count == 2 else {
+    print("usage: kalc <file>")
+    exit(1)
+}
 
-double(3.141 + 2.718)
+do {
+    let file = CommandLine.arguments[1]
+    let program = try String(contentsOfFile: file)
+    let lexer = Lexer(text: program)
+    let parser = Parser(tokens: lexer)
+    let ast = try parser.parseFile()
+    let irGenerator = IRGenerator(ast: ast)
 
-func double(x) (2 * x);
-func max(x, y) if (x - y) then (x) else (y);
-"""
-
-let lexer = Lexer(text: program)
-let parser = Parser(tokens: lexer)
-let file = try parser.parseFile()
-let irGenerator = IRGenerator(file: file)
-try irGenerator.emit()
-LLVMDumpModule(irGenerator.module)
+    try irGenerator.emit()
+    
+    var verificationError: UnsafeMutablePointer<Int8>?
+    let errorStatus = LLVMVerifyModule(irGenerator.module, LLVMReturnStatusAction, &verificationError)
+    if let message = verificationError, errorStatus == LLVMBool(true) {
+        print(String(cString: message))
+        exit(1)
+    }
+    
+    LLVMDumpModule(irGenerator.module)
+} catch {
+    print(error)
+}

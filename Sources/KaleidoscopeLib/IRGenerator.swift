@@ -17,8 +17,8 @@ public final class IRGenerator {
         case builderFailure
     }
     
-    public init(file: File) {
-        self.file = file
+    public init(ast: AST) {
+        self.ast = ast
         builder = LLVMCreateBuilderInContext(LLVMGetGlobalContext())
         module = LLVMModuleCreateWithName("kaleidoscope")
         namedValues = [:]
@@ -26,7 +26,7 @@ public final class IRGenerator {
         floatType = LLVMFloatTypeInContext(LLVMGetGlobalContext())
     }
     
-    public private(set) var file: File
+    public private(set) var ast: AST
     public private(set) var module: LLVMModuleRef
     private let builder: LLVMBuilderRef
     private var namedValues: [String: LLVMValueRef]
@@ -37,8 +37,8 @@ public final class IRGenerator {
 extension IRGenerator {
     
     public func emit() throws {
-        _ = file.externals.map(emit(prototype:))
-        _ = try file.functions.map(emit(function:))
+        _ = ast.externals.map(emit(prototype:))
+        _ = try ast.functions.map(emit(function:))
         try emitMain()
     }
     
@@ -57,9 +57,9 @@ extension IRGenerator {
         let formatString = LLVMBuildGlobalStringPtr(builder, "%f\n", "format")
         let printf = emitPrintf()
         
-        for expression in file.expressions {
+        for expression in ast.expressions {
             let value = try emit(expression: expression)
-            var arguments: [LLVMValueRef?] = [value, formatString]
+            var arguments: [LLVMValueRef?] = [formatString, value]
             LLVMBuildCall(builder, printf, &arguments, UInt32(arguments.count), "print")
         }
         
@@ -96,10 +96,6 @@ extension IRGenerator {
         
         LLVMPositionBuilderAtEnd(builder, entryBlock)
         LLVMBuildRet(builder, try emit(expression: function.body))
-        
-        guard LLVMVerifyFunction(prototype, LLVMAbortProcessAction) == LLVMBool(true) else {
-            throw Error.verificationFailure(function: function.head.name)
-        }
         
         return prototype
     }
@@ -162,33 +158,34 @@ extension IRGenerator {
                 let bool = LLVMBuildFCmp(builder, LLVMRealUEQ, lhs, rhs, "equality")
                 return LLVMBuildCast(builder, LLVMUIToFP, bool, floatType, "floatedBool")
             }
-            
-        case let .if(condition: condition, then: then, else: `else`):            
-            let mergeBlock = LLVMCreateBasicBlockInContext(LLVMGetGlobalContext(), "merge")
         
-            let thenBlock = LLVMCreateBasicBlockInContext(LLVMGetGlobalContext(), "then")
-            LLVMBuildBr(builder, mergeBlock)
+        case let .if(condition: condition, then: then, else: `else`):
+            let entryBlock = LLVMGetInsertBlock(builder)
+            let currentFunction = LLVMGetBasicBlockParent(entryBlock)
             
-            let elseBlock = LLVMCreateBasicBlockInContext(LLVMGetGlobalContext(), "else")
-            LLVMBuildBr(builder, mergeBlock)
+            let ifBlock =    LLVMAppendBasicBlock(currentFunction, "if")
+            let thenBlock =  LLVMAppendBasicBlock(currentFunction, "then")
+            let elseBlock =  LLVMAppendBasicBlock(currentFunction, "else")
+            let mergeBlock = LLVMAppendBasicBlock(currentFunction, "merge")
             
-            let ifBlock = LLVMCreateBasicBlockInContext(LLVMGetGlobalContext(), "if")
+            LLVMPositionBuilderAtEnd(builder, entryBlock)
+            LLVMBuildBr(builder, ifBlock)
+            
+            LLVMPositionBuilderAtEnd(builder, ifBlock)
             let condition = try emit(expression: condition)
-            let floatForFalse = LLVMConstReal(floatType, Double(Int(false)))
+            let floatForFalse = LLVMConstReal(floatType, Double(LLVMBool(false)))
             let ifHeader = LLVMBuildFCmp(builder, LLVMRealONE, condition, floatForFalse, "condition")
             LLVMBuildCondBr(builder, ifHeader, thenBlock, elseBlock)
             
-            // Move the instructions and blocks into the right order.
-            LLVMMoveBasicBlockAfter(mergeBlock, elseBlock)
-            LLVMMoveBasicBlockBefore(ifBlock, thenBlock)
+            LLVMPositionBuilderAtEnd(builder, thenBlock)
+            LLVMBuildBr(builder, mergeBlock)
             
-            guard let resultPhi = LLVMBuildPhi(builder, floatType, "result") else {
-                throw Error.builderFailure
-            }
-            var phiValues: [LLVMValueRef?] = [
-                try emit(expression: then),
-                try emit(expression: `else`)
-            ]
+            LLVMPositionBuilderAtEnd(builder, elseBlock)
+            LLVMBuildBr(builder, mergeBlock)
+            
+            LLVMPositionBuilderAtEnd(builder, mergeBlock)
+            guard let resultPhi = LLVMBuildPhi(builder, floatType, "result") else { throw Error.builderFailure }
+            var phiValues: [LLVMValueRef?] = [try emit(expression: then), try emit(expression: `else`)]
             var phiBlocks = [thenBlock, elseBlock]
             LLVMAddIncoming(resultPhi, &phiValues, &phiBlocks, UInt32(phiValues.count))
             

@@ -26,14 +26,14 @@ extension Token.Symbol: CustomDebugStringConvertible {
 extension Operator: CustomDebugStringConvertible {
     
     public var debugDescription: String {
-        return "\"\(rawValue)\""
+        return "\(rawValue)"
     }
 }
 
-extension File: CustomDebugStringConvertible {
+extension AST: CustomDebugStringConvertible {
     
     public var debugDescription: String {
-        var description = "File<"
+        var description = "AST<"
         
         description += "\n  Functions:"
         for function in functions { description += "\n    \(function)" }
@@ -60,7 +60,7 @@ extension Prototype: CustomDebugStringConvertible {
 extension Function: CustomDebugStringConvertible {
     
     public var debugDescription: String {
-        return "Function<\(head) | \(body)>"
+        return "Function<\(head) |body: \(body)>"
     }
 }
 
@@ -78,7 +78,7 @@ extension Expression: CustomDebugStringConvertible {
             let argumentList = arguments.map { $0.debugDescription }.joined(separator: ", ")
             return "Call<\(function)(\(argumentList))>"
         case let .if(condition: condition, then: then, else: `else`):
-            return "(\(condition)) ? \(then) : \(`else`)"
+            return "If<\(condition) |then: \(then) |else: \(`else`)>"
         }
     }
 }

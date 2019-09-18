@@ -6,7 +6,7 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-public struct File {
+public struct AST {
     var functions: [Function] = []
     var externals: [Prototype] = []
     var expressions: [Expression] = []
