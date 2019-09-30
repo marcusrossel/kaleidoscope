@@ -1,7 +1,7 @@
 import XCTest
 
-import KaleidoscopeTests
+import KaleidoscopeLibTests
 
 var tests = [XCTestCaseEntry]()
-tests += KaleidoscopeTests.allTests()
+tests += KaleidoscopeLibTests.allTests()
 XCTMain(tests)

@@ -154,9 +154,9 @@ extension IRGenerator {
                 return LLVMBuildFDiv(builder, lhs, rhs, "quotient")
             case .modulo:
                 return LLVMBuildFRem(builder, lhs, rhs, "remainder")
-            case .equals:
+            /* case .equals:
                 let bool = LLVMBuildFCmp(builder, LLVMRealUEQ, lhs, rhs, "equality")
-                return LLVMBuildCast(builder, LLVMUIToFP, bool, floatType, "floatedBool")
+                return LLVMBuildCast(builder, LLVMUIToFP, bool, floatType, "floatedBool") */
             }
         
         case let .if(condition: condition, then: then, else: `else`):

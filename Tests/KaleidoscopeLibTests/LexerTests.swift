@@ -3,86 +3,104 @@ import XCTest
 
 final class LexerTests: XCTestCase {
 
-    var lexer = Lexer()
-    lazy var parser = Parser(tokens: lexer)
-    
     static var allTests = [
-        ("testLexer", testLexer),
+        ("testEmptyText", testEmptyText),
+        ("testWhitespace", testWhitespace),
+        ("testInvalidCharacters", testInvalidCharacters),
+        ("testSpecialSymbols", testSpecialSymbols),
+        ("testOperators", testOperators),
+        ("testIdentifiersAndKeywords", testIdentifiersAndKeywords),
+        ("testNumbers", testNumbers),
+        ("testComplex", testComplex),
     ]
     
-    func testLexer() {
-        // Test numbers.
-        lexer.text = "12__34.0_12 -123 0xEEE 0o123 0b1101"
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(1234.012))
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(-123))
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(0xEEE))
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(0o123))
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(0b1101))
-        
-        // Reset `lexer`.
-        lexer.position = 0
-        
-        // Test identifiers.
-        lexer.text = "_123 a_23 aSDf_ EE12F:A"
-        XCTAssertEqual(lexer.nextToken(), .identifier("_123"))
-        XCTAssertEqual(lexer.nextToken(), .identifier("a_23"))
-        XCTAssertEqual(lexer.nextToken(), .identifier("aSDf_"))
-        XCTAssertEqual(lexer.nextToken(), .identifier("EE12F"))
-        XCTAssertEqual(lexer.nextToken(), .other(":"))
-        XCTAssertEqual(lexer.nextToken(), .identifier("A"))
-        
-        // Reset `lexer`.
-        lexer.position = 0
-        
-        // Test keywords.
-        lexer.text = "extern func function if external then else"
-        XCTAssertEqual(lexer.nextToken(), .keyword(.external))
-        XCTAssertEqual(lexer.nextToken(), .keyword(.function))
-        XCTAssertEqual(lexer.nextToken(), .identifier("function"))
-        XCTAssertEqual(lexer.nextToken(), .keyword(.if))
-        XCTAssertEqual(lexer.nextToken(), .identifier("external"))
-        XCTAssertEqual(lexer.nextToken(), .keyword(.then))
-        XCTAssertEqual(lexer.nextToken(), .keyword(.else))
-        
-        // Reset `lexer`.
-        lexer.position = 0
-        
-        // Test comments.
-        lexer.text = "a/*abc 123 _?*/bc // To EOL \n 123/*\n*/456"
-        XCTAssertEqual(lexer.nextToken(), .identifier("a"))
-        XCTAssertEqual(lexer.nextToken(), .identifier("bc"))
-        XCTAssertEqual(lexer.nextToken(), .symbol(.newLine))
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(123))
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(456))
-        
-        // Reset `lexer`.
-        lexer.position = 0
-        
-        // Test single character tokens.
-        lexer.text = "+ - * / % = , ; ( )"
-        XCTAssertEqual(lexer.nextToken(), .operator(.plus))
-        XCTAssertEqual(lexer.nextToken(), .operator(.minus))
-        XCTAssertEqual(lexer.nextToken(), .operator(.times))
-        XCTAssertEqual(lexer.nextToken(), .operator(.divide))
-        XCTAssertEqual(lexer.nextToken(), .operator(.modulo))
-        XCTAssertEqual(lexer.nextToken(), .operator(.equals))
-        XCTAssertEqual(lexer.nextToken(), .symbol(.comma))
-        XCTAssertEqual(lexer.nextToken(), .symbol(.semicolon))
-        XCTAssertEqual(lexer.nextToken(), .symbol(.leftParenthesis))
-        XCTAssertEqual(lexer.nextToken(), .symbol(.rightParenthesis))
-        
-        // Reset `lexer`.
-        lexer.position = 0
-        
-        // Test other.
-        lexer.text = "123_._45 ?? \n"
-        XCTAssertEqual(lexer.nextToken(), .numberLiteral(123))
-        XCTAssertEqual(lexer.nextToken(), .other("."))
-        XCTAssertEqual(lexer.nextToken(), .identifier("_45"))
-        XCTAssertEqual(lexer.nextToken(), .other("?"))
-        XCTAssertEqual(lexer.nextToken(), .other("?"))
-        XCTAssertEqual(lexer.nextToken(), .symbol(.newLine))
-        XCTAssertEqual(lexer.nextToken(), .symbol(.endOfFile))
+    func testEmptyText() {
+        let lexer = Lexer(text: "")
+        XCTAssertNil(try lexer.nextToken())
     }
 
+    func testWhitespace() {
+        let lexer = Lexer(text: "   \n ")
+        XCTAssertNil(try lexer.nextToken())
+    }
+    
+    func testInvalidCharacters() {
+        let lexer = Lexer(text: "?! a")
+        
+        XCTAssertThrowsError(try lexer.nextToken())
+        XCTAssertThrowsError(try lexer.nextToken())
+        XCTAssertNotNil(try lexer.nextToken())
+        XCTAssertNil(try lexer.nextToken())
+    }
+    
+    func testSpecialSymbols() {
+        let lexer = Lexer(text: "( ) : , ;")
+        
+        XCTAssertEqual(try lexer.nextToken(), .symbol(.leftParenthesis))
+        XCTAssertEqual(try lexer.nextToken(), .symbol(.rightParenthesis))
+        XCTAssertThrowsError(try lexer.nextToken())
+        XCTAssertEqual(try lexer.nextToken(), .symbol(.comma))
+        XCTAssertEqual(try lexer.nextToken(), .symbol(.semicolon))
+        XCTAssertNil(try lexer.nextToken())
+    }
+    
+    func testOperators() {
+        let lexer = Lexer(text: "+-*/%")
+        
+        XCTAssertEqual(try lexer.nextToken(), .operator(.plus))
+        XCTAssertEqual(try lexer.nextToken(), .operator(.minus))
+        XCTAssertEqual(try lexer.nextToken(), .operator(.times))
+        XCTAssertEqual(try lexer.nextToken(), .operator(.divide))
+        XCTAssertEqual(try lexer.nextToken(), .operator(.modulo))
+        XCTAssertNil(try lexer.nextToken())
+    }
+    
+    func testIdentifiersAndKeywords() {
+        let lexer = Lexer(text: "_012 _def def0 define def extern if then else")
+        
+        XCTAssertEqual(try lexer.nextToken(), .identifier("_012"))
+        XCTAssertEqual(try lexer.nextToken(), .identifier("_def"))
+        XCTAssertEqual(try lexer.nextToken(), .identifier("def0"))
+        XCTAssertEqual(try lexer.nextToken(), .identifier("define"))
+        XCTAssertEqual(try lexer.nextToken(), .keyword(.definition))
+        XCTAssertEqual(try lexer.nextToken(), .keyword(.external))
+        XCTAssertEqual(try lexer.nextToken(), .keyword(.if))
+        XCTAssertEqual(try lexer.nextToken(), .keyword(.then))
+        XCTAssertEqual(try lexer.nextToken(), .keyword(.else))
+        XCTAssertNil(try lexer.nextToken())
+    }
+    
+    func testNumbers() {
+        let lexer = Lexer(text: "0 -123 3.14 42. .50 123_456")
+        
+        XCTAssertEqual(try lexer.nextToken(), .number(0))
+        XCTAssertEqual(try lexer.nextToken(), .operator(.minus))
+        XCTAssertEqual(try lexer.nextToken(), .number(123))
+        XCTAssertEqual(try lexer.nextToken(), .number(3.14))
+        XCTAssertEqual(try lexer.nextToken(), .number(42))
+        XCTAssertThrowsError(try lexer.nextToken())
+        XCTAssertThrowsError(try lexer.nextToken())
+        XCTAssertEqual(try lexer.nextToken(), .number(50))
+        XCTAssertEqual(try lexer.nextToken(), .number(123))
+        XCTAssertNotNil(try lexer.nextToken())
+        XCTAssertNil(try lexer.nextToken())
+    }
+    
+    func testComplex() {
+        let lexer = Lexer(text: "def_function.extern (123*x^4.5\nifthenelse;else\t")
+        
+        XCTAssertEqual(try lexer.nextToken(), .identifier("def_function"))
+        XCTAssertThrowsError(try lexer.nextToken())
+        XCTAssertEqual(try lexer.nextToken(), .keyword(.external))
+        XCTAssertEqual(try lexer.nextToken(), .symbol(.leftParenthesis))
+        XCTAssertEqual(try lexer.nextToken(), .number(123))
+        XCTAssertEqual(try lexer.nextToken(), .operator(.times))
+        XCTAssertEqual(try lexer.nextToken(), .identifier("x"))
+        XCTAssertThrowsError(try lexer.nextToken())
+        XCTAssertEqual(try lexer.nextToken(), .number(4.5))
+        XCTAssertEqual(try lexer.nextToken(), .identifier("ifthenelse"))
+        XCTAssertEqual(try lexer.nextToken(), .symbol(.semicolon))
+        XCTAssertEqual(try lexer.nextToken(), .keyword(.else))
+        XCTAssertNil(try lexer.nextToken())
+    }
 }

@@ -6,262 +6,192 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-import LexerProtocol
 import Foundation
 
-public final class Lexer: LexerProtocol {
+public final class Lexer: TokenStream {
     
-    public typealias Token = KaleidoscopeLib.Token
-
-    public init(text: String? = nil) {
-        self.text = text ?? ""
+    public enum Error: Swift.Error {
+        case invalidCharacter(Character)
     }
     
-    public var text = ""
-    public var position = 0
-    public var endOfText: Character = "\0"
+    private typealias TokenTransformation = (Lexer) -> () throws -> Token?
     
-    public var defaultTransform: (inout Character, Lexer) -> Token = { buffer, lexer in
-        defer { buffer = lexer.nextCharacter() }
-        return .other(buffer)
-    }
+    /// The plain text, which will be lexed.
+    public let text: String
     
-    public var tokenTransforms = [
-        TokenTransform.forSkippables,
-        TokenTransform.forIdentifiersAndKeywords,
-        TokenTransform.forNumbers,
-        TokenTransform.forSingleCharacterTokens,
+    /// The position of the next relevant character in `text`.
+    public private(set) var position: Int
+    
+    /// An ordered list of the token transformations, in the order in which they
+    /// should be called by `nextToken`.
+    private let transformations: [TokenTransformation] = [
+        lexWhitespace,
+        lexIdentifiersAndKeywords,
+        lexNumbers,
+        lexSpecialSymbolsAndOperators,
+        lexInvalidCharacter
     ]
     
-    /// Customizes the iteration behaviour of the lexer to stop when the end-of-file token is
-    /// encountered.
-    public func next() -> Token? {
-        let token = nextToken()
-        return (token == .symbol(.endOfFile)) ? nil : token
-    }
-}
-
-/// A namespace that contains all of the token-transforms used by the lexer.
-private enum TokenTransform {
-
-    /// Combines the whitespace and comment transforms, as they always return `nil` and can
-    /// therefore not "restart the lexer's transform-pipeline".
-    ///
-    /// This method only works as long as this transform is the first.
-    @discardableResult
-    static func forSkippables(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        var initialPosition: Int
+    /// The set of characters allowed as an identifier's head.
+    private let identifierHead: CharacterSet
+    
+    /// The set of characters allowed as an identifier's body.
+    private let identifierBody: CharacterSet
+    
+    /// Creates a lexer for the given text, with a starting position of `0`.
+    public init(text: String) {
+        self.text = text
+        position = 0
         
-        repeat {
-            initialPosition = lexer.position
-            
-            TokenTransform.forWhitespace(&buffer, lexer)
-            TokenTransform.forComments(&buffer, lexer)
-        } while lexer.position != initialPosition
+        identifierHead = CharacterSet
+            .letters
+            .union(CharacterSet(charactersIn: "_"))
+        identifierBody = identifierHead.union(.decimalDigits)
+    }
+    
+    /// Returns the the next character in `text`.
+    ///
+    /// - Note: If `position` has reached `text`'s end index, `nil` is returned
+    /// on every subsequent call.
+    ///
+    /// - Parameter peek: Determines whether or not the lexer's `position` will
+    /// be affected or not.
+    /// - Parameter stride: The offset from the current `position` of the
+    /// returned character (must be >= `1`). The `stride` also affects the amount
+    /// by which `position` will be increased.
+    private func nextCharacter(peek: Bool = false, stride: Int = 1) -> Character? {
+        // Precondition.
+        guard stride >= 1 else {
+            fatalError("Lexer Error: \(#function): `stride` must be >= 1.\n")
+        }
+        
+        // Because `position` always points to the "next relevant character", a
+        // stride of `1` should result in the `nextCharacterIndex` being equal
+        // to `position`. Therefore the `- 1` at the end.
+        let nextCharacterIndex = position + stride - 1
+        
+        // Changing the value of `position` should only happen after we have
+        // determined what our next character is. Therefore the `defer`.
+        defer {
+            // Only increases the `position` if we are not peeking.
+            // If the new `position` would go beyond the `text`'s end index, it
+            // is instead capped at the end index (`text.count`).
+            // The new `position` is `position + stride` (without `- 1`),
+            // because it has to point to the character after the one we are
+            // returning during this method call.
+            if !peek { position = min(position + stride, text.count) }
+        }
+        
+        // If the `nextCharacterIndex` is out of bounds, return `nil`.
+        guard nextCharacterIndex < text.count else { return nil }
+        
+        
+        return text[text.index(text.startIndex, offsetBy: nextCharacterIndex)]
+    }
+    
+    /// Tries to return the next token lexable from the `text`.
+    /// If there is a syntactical error in the `text`, an error is thrown.
+    /// If there are no more characters to be lexed, `nil` is returned.
+    public func nextToken() throws -> Token? {
+        for transformation in transformations {
+            if let token = try transformation(self)() {
+                return token
+            }
+        }
         
         return nil
     }
     
-    /// Detects and ignores whitespace.
-    ///
-    /// - Returns: `nil`
-    @discardableResult
-    private static func forWhitespace(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        while buffer.isPart(of: .whitespaces) { buffer = lexer.nextCharacter() }
-        return nil
-    }
-    
-    /// Detects and ignores single- and multi-line comments.
-    ///
-    /// Single-line comments begin with `//` and end with a new-line character.
-    /// Multi-line comments begin with `/*` and end with `*/`.
-    ///
-    /// - Returns: `nil`
-    @discardableResult
-    private static func forComments(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        guard buffer == "/" else { return nil }
-    
-        // Handles single-line comments.
-        if lexer.nextCharacter(peek: true) == "/" {
-            let singleLineTerminators = CharacterSet.newlines.union(.init(charactersIn: "\0"))
-            
-            repeat { buffer = lexer.nextCharacter() }
-            while !buffer.isPart(of: singleLineTerminators)
-        }
-        
-        // Handles multi-line comments.
-        if lexer.nextCharacter(peek: true) == "*" {
-            buffer = lexer.nextCharacter() // buffer = "*"
-            
-            // By adding a padding to the front of `commentBuffer` and removing
-            // the first character on each iteration, the string comparison stays at O(1) instead of
-            // O(n). The array reallocation should also be O(1) each iteration, as array.count == 3
-            // is invariant.
-            var commentBuffer = "  " // two spaces
-            
-            repeat {
-                buffer = lexer.nextCharacter()
-                
-                guard buffer != lexer.endOfText else {
-                    print("Syntax Error: Multi-line comment was not closed.")
-                    return nil
-                }
-                
-                commentBuffer.append(buffer)
-                commentBuffer.remove(at: commentBuffer.startIndex)
-            } while commentBuffer != "*/"
-            
-            buffer = lexer.nextCharacter()
-        }
-        
-        return nil
-    }    
-    
-    /// Detects binary, octal, decimal and hexadecimal integer literals as well as
-    /// floating-point literals.
-    /// The different integer literal types are denoted by prefixes:
-    /// * binary: `0b`
-    /// * octal: `0o`
-    /// * decimal: no prefix
-    /// * hexadecimal: `0x`
-    ///
-    /// - Returns: An `.integer` token if an integer literal was detected, a
-    /// `.floatingPoint` token if a floating-point token was detected, otherwise
-    /// `nil`.
-    static func forNumbers(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        // Determines if the number is negative, and if the first character after
-        // the sign-character even qualifies for a number.
-        let numberIsNegative = buffer == "-"
-        let testBuffer = numberIsNegative ? lexer.nextCharacter(peek: true) : buffer
-        
-        guard testBuffer.isPart(of: .decimalDigits) else { return nil }
-        if numberIsNegative { buffer = lexer.nextCharacter() }
-        
-        // An indicator used to eliminate the validity of a decimal point if an
-        // integer-literal prefix (`0b`, `0o`, `0x`) has been used.
-        var literalMustBeInteger = false
-        
-        // Assumes that the number literal will be a decimal integer.
-        var validCharacters = "01234567890_"
-        var radix = 10
-        
-        // Adjusts `validCharacters` and `radix` incase of binary, octal and
-        // hexadecimal integer literals.
-        nonDecimalIntegerRoutine: do {
-            let peekBuffer = lexer.nextCharacter(peek: true)
-            if buffer == "0" && peekBuffer.isPart(of: .letters) {
-                switch peekBuffer {
-                case "b": validCharacters = "01_"; radix = 2
-                case "o": validCharacters = "01234567_"; radix = 8
-                case "x": validCharacters = "0123456789abcdefABCDEF_"; radix = 16
-                default: break nonDecimalIntegerRoutine
-                }
-                
-                // Only if the first character after the prefix is valid, the integer
-                // literal can be valid.
-                let postPrefix = String(lexer.nextCharacter(peek: true, stride: 2))
-                guard validCharacters.contains(postPrefix) else {
-                    break nonDecimalIntegerRoutine
-                }
-                literalMustBeInteger = true
-                buffer = lexer.nextCharacter(stride: 2)
-            }
-        }
-        
-        var numberBuffer = numberIsNegative ? "-" : ""
-        
-        // Condition closure that checks if a decimal point is valid given a certain
-        // state.
-        let isValidDecimalPoint = { (buffer: Character) -> Bool in
-            guard buffer == "." else { return false }
-            let nextCharacter = lexer.nextCharacter(peek: true)
-            
-            return
-                !numberBuffer.contains(".") &&
-                    numberBuffer.last != "_" &&
-                    validCharacters.contains(String(nextCharacter)) &&
-                    nextCharacter != "_"
-        }
-        
-        // Gets all of the characters that belong to the literal and stores them in
-        // `numberBuffer`.
-        repeat {
-            numberBuffer.append(buffer)
-            buffer = lexer.nextCharacter()
-        } while
-            validCharacters.contains(String(buffer)) ||
-            (!literalMustBeInteger && isValidDecimalPoint(buffer))
-        
-        // Removes the `_` characters, because otherwise the number-from-string
-        // initializers fail.
-        let trimmedBuffer = numberBuffer.replacingOccurrences(of: "_", with: "")
-        
-        let value: Double
-        
-        if trimmedBuffer.contains(".") {
-            // Tries to convert the literal to a `Double`. If this fails, something is
-            // wrong with the lexing process.
-            guard let floatingPointValue = Double(trimmedBuffer) else {
-                fatalError("Lexer Error: Was not able to convert `String`(" +
-                    numberBuffer + ") to `Double`.\n")
-            }
-            value = floatingPointValue
-        } else {
-            // Tries to convert the literal to an `Int`. If this fails, something is
-            // wrong with the lexing process.
-            guard let integerValue = Int(trimmedBuffer, radix: radix) else {
-                fatalError("Lexer Error: Was not able to convert `String`(" +
-                    numberBuffer + ") to `Int`.\n")
-            }
-            value = Double(integerValue)
-        }
-        
-        return .numberLiteral(value)
-    }
-    
-    // Detects identifiers and keywords (specialized identifiers).
-    //
-    // An identifier must begin with a letter or a `_`. The body of the identifier
-    // can contain either any alphanumeric character or `_`.
-    //
-    // Valid keywords are determined by `Token.Keyword`'s raw values.
-    static func forIdentifiersAndKeywords(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        let validPrefix = CharacterSet.letters.union(.init(charactersIn: "_"))
-        let validBody = CharacterSet.alphanumerics.union(.init(charactersIn: "_"))
-        
-        guard buffer.isPart(of: validPrefix) else { return nil }
-        var identifierBuffer = ""
-        
-        repeat {
-            identifierBuffer.append(buffer)
-            buffer = lexer.nextCharacter()
-        } while buffer.isPart(of: validBody)
-        
-        // Returns an `.identifier` or `.keyword` depending on the
-        // identifier buffer.
-        if let keyword = Token.Keyword(rawValue: identifierBuffer) {
-            return .keyword(keyword)
-        } else {
-            return .identifier(identifierBuffer)
-        }
-    }
-    
-    static func forSingleCharacterTokens(_ buffer: inout Character, _ lexer: Lexer) -> Token? {
-        if let `operator` = Operator(rawValue: buffer) {
-            buffer = lexer.nextCharacter()
-            return .operator(`operator`)
-        } else if let symbol = Token.Symbol(rawValue: buffer) {
-            buffer = lexer.nextCharacter()
-            return .symbol(symbol)
+    private func lexInvalidCharacter() throws -> Token? {
+        if let character = nextCharacter() {
+            throw Error.invalidCharacter(character)
         } else {
             return nil
         }
     }
+    
+    private func lexWhitespace() throws -> Token? {
+        while nextCharacter(peek: true).isPartOf(.whitespacesAndNewlines) {
+            _ = self.nextCharacter()
+        }
+        
+        return nil
+    }
+    
+    private func lexSpecialSymbolsAndOperators() -> Token? {
+        guard let character = nextCharacter(peek: true) else { return nil }
+        
+        if let specialSymbol = Token.Symbol(rawValue: character) {
+            _ = nextCharacter()
+            return .symbol(specialSymbol)
+        }
+        
+        if let `operator` = Operator(rawValue: character) {
+            _ = nextCharacter()
+            return .operator(`operator`)
+        }
+        
+        return nil
+    }
+    
+    private func lexIdentifiersAndKeywords() -> Token? {
+        guard nextCharacter(peek: true).isPartOf(identifierHead) else {
+            return nil
+        }
+        
+        var buffer = "\(nextCharacter()!)"
+        
+        while nextCharacter(peek: true).isPartOf(identifierBody) {
+            buffer.append(nextCharacter()!)
+        }
+        
+        if let keyword = Token.Keyword(rawValue: buffer) {
+            return .keyword(keyword)
+        } else {
+            return .identifier(buffer)
+        }
+    }
+    
+    private func lexNumbers() -> Token? {
+        guard nextCharacter(peek: true).isPartOf(.decimalDigits) else {
+            return nil
+        }
+        
+        var buffer = "\(nextCharacter()!)"
+        
+        while nextCharacter(peek: true).isPartOf(.decimalDigits) {
+            buffer.append(nextCharacter()!)
+        }
+        
+        if nextCharacter(peek: true) == "." &&
+            nextCharacter(peek: true, stride: 2).isPartOf(.decimalDigits)
+        {
+            buffer.append(".\(nextCharacter(stride: 2)!)")
+            
+            while nextCharacter(peek: true).isPartOf(.decimalDigits) {
+                buffer.append(nextCharacter()!)
+            }
+        }
+        
+        guard let number = Double(buffer) else {
+            fatalError("Lexer Error: \(#function): internal error.")
+        }
+        
+        return .number(number)
+    }
 }
 
-// Helper method.
-private extension Character {
-    func isPart(of set: CharacterSet) -> Bool {
+extension Character {
+    
+    func isPartOf(_ set: CharacterSet) -> Bool {
         return String(self).rangeOfCharacter(from: set) != nil
+    }
+}
+
+extension Optional where Wrapped == Character {
+    
+    func isPartOf(_ set: CharacterSet) -> Bool {
+        guard let self = self else { return false }
+        return self.isPartOf(set)
     }
 }

@@ -15,11 +15,7 @@ extension Token.Keyword: CustomDebugStringConvertible {
 extension Token.Symbol: CustomDebugStringConvertible {
     
     public var debugDescription: String {
-        switch self {
-        case .endOfFile: return "EOF"
-        case .newLine: return "newLine"
-        default: return "\"\(rawValue)\""
-        }
+        return "\(rawValue)"
     }
 }
 

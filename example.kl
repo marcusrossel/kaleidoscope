@@ -7,5 +7,5 @@ extern run(start, increment);
 double(3.141 + 2.718)
 if (double(0.5) = 1.0) then 23 else 42
 
-func double(x) (2 * x);
-func max(x, y) if (x - y) then (x) else (y);
+def double(x) (2 * x);
+def max(x, y) if (x - y) then (x) else (y);

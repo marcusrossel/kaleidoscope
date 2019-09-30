@@ -27,7 +27,7 @@ do {
     let file = CommandLine.arguments[1]
     let program = try String(contentsOfFile: file)
     let lexer = Lexer(text: program)
-    let parser = Parser(tokens: lexer)
+    let parser = try Parser(tokens: lexer)
     let ast = try parser.parseFile()
     let irGenerator = IRGenerator(ast: ast)
 

@@ -6,48 +6,38 @@
 //  Copyright © 2016 Marcus Rossel. All rights reserved.
 //
 
-/* Target grammar:
- 
-<function>  ::= "func" <prototype> <expr> ";"
-<extern>    ::= "extern" <prototype> ";"
-<prototype> ::= <identifier> "(" <params> ")"
-<params>    ::= <identifier> | <identifier> "," <params>
-<expr>      ::= <binary> | <call> | <identifier> | <number> | <ifelse> | "(" <expr> ")"
-<call>      ::= <identifier> "(" <arguments> ")"
-<arguments> ::= <expr> | <expr> "," <arguments>
-<ifelse>    ::= "if" <expr> "then" <expr> "else" <expr>
-<binary>    ::= <expr> <operator> <expr>
-<operator>  ::= "+" | "-" | "*" | "/" | "%"
- 
-*/
+public protocol TokenStream {
+    
+    associatedtype Token
+    
+    func nextToken() throws -> Token?
+}
 
-public final class Parser<Tokens: IteratorProtocol> where Tokens.Element == Token {
+
+public final class Parser<Tokens: TokenStream> where Tokens.Token == Token {
     
     public enum Error: Swift.Error {
         case unexpectedToken(Token?)
     }
     
-    public init(tokens: Tokens) {
+    public init(tokens: Tokens) throws {
         self.tokens = tokens
-        consumeToken()
+        try consumeToken()
     }
     
     private var tokens: Tokens
     // This value being `nil` is equivalent to an EOF.
     private var currentToken: Token?
     
-    private func consumeToken(ignoringNewLines: Bool = true) {
-        repeat { currentToken = tokens.next() }
-        while ignoringNewLines && currentToken == .symbol(.newLine)
+    private func consumeToken() throws {
+        currentToken = try tokens.nextToken()
     }
     
-    private func consumeToken(_ target: Token, ignoringNewLines: Bool = true) throws {
-        if ignoringNewLines && currentToken == .symbol(.newLine) { consumeToken() }
-        
+    private func consumeToken(_ target: Token) throws {
         if currentToken != target {
             throw Error.unexpectedToken(currentToken)
         } else {
-            consumeToken()
+            try consumeToken()
         }
     }
     
@@ -58,7 +48,7 @@ public final class Parser<Tokens: IteratorProtocol> where Tokens.Element == Toke
             switch currentToken {
             case .keyword(.external)?:
                 ast.externals.append(try parseExternalFunction())
-            case .keyword(.function)?:
+            case .keyword(.definition)?:
                 ast.functions.append(try parseFunction())
             default:
                 ast.expressions.append(try parseExpression())
@@ -82,7 +72,7 @@ extension Parser {
             _ = try? consumeToken(.symbol(.comma))
         }
         
-        consumeToken() // .symbol(.rightParenthesis)
+        try consumeToken() // .symbol(.rightParenthesis)
         return elements
     }
     
@@ -90,7 +80,7 @@ extension Parser {
         guard case let Token.identifier(identifier)? = currentToken else {
             throw Error.unexpectedToken(currentToken)
         }
-        consumeToken() // .identifier
+        try consumeToken() // .identifier
         
         return identifier
     }
@@ -115,7 +105,7 @@ extension Parser {
     }
     
     private func parseFunction() throws -> Function {
-        try consumeToken(.keyword(.function))
+        try consumeToken(.keyword(.definition))
         let prototype = try parsePrototype()
         let expression = try parseExpression()
         try consumeToken(.symbol(.semicolon))
@@ -133,7 +123,7 @@ extension Parser {
         switch currentToken {
         case .symbol(.leftParenthesis)?:
             expression = try parseParenthesizedExpression()
-        case .numberLiteral?:
+        case .number?:
             expression = try parseNumberExpression()
         case .identifier(let identifier)?:
             expression = (try? parseCallExpression()) ?? .variable(identifier)
@@ -177,10 +167,10 @@ extension Parser {
     }
     
     private func parseNumberExpression() throws -> Expression {
-        guard case let Token.numberLiteral(number)? = currentToken else {
+        guard case let Token.number(number)? = currentToken else {
             throw Error.unexpectedToken(currentToken)
         }
-        consumeToken() // .numberLiteral
+        try consumeToken() // .numberLiteral
         
         return .number(number)
     }
@@ -189,7 +179,7 @@ extension Parser {
         guard case let Token.operator(`operator`)? = currentToken else {
             throw Error.unexpectedToken(currentToken)
         }
-        consumeToken() // .operator
+        try consumeToken() // .operator
         
         let rhs = try parseExpression()
         

@@ -19,7 +19,6 @@ let package = Package(
     
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/marcusrossel/lexer-protocol", .branch("master")),
     ],
     
     targets: [
@@ -32,7 +31,7 @@ let package = Package(
         ),
         .target(
             name: "KaleidoscopeLib",
-            dependencies: ["LexerProtocol", "CLLVM"]
+            dependencies: ["CLLVM"]
         ),
         .target(
             name: "Kaleidoscope",
